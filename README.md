@@ -23,6 +23,7 @@ It currently logs the following data:
     After=multi-user.target
 
     [Service]
+    User=[user]
     Type=idle
     ExecStart=/usr/bin/python3 /home/pi/sensors/system_sensors.py
 
