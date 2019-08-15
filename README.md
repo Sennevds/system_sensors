@@ -12,8 +12,8 @@ It currently logs the following data:
 # Installation:
 1. Clone this repo
 2. cd system_sensors
-3. pip install -r requirements.txt
-4. python system_sensors.py
+3. pip3 install -r requirements.txt
+4. python3 system_sensors.py
 5. (optional) create service to autostart the script at boot:
     1. sudo nano /etc/systemd/system/system_sensor.service
     2. copy following script:
