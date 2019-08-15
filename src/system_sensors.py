@@ -19,7 +19,7 @@ broker_url = ""#MQTT server IP
 broker_port = 1883 #MQTT server port
 client = mqtt.Client()
 #client.username_pw_set("", "") #Username and pass if configured otherwise you should comment out this
-deviceName = "" #Name off your PI
+deviceName = "" #Name of your PI
 SYSFILE = '/sys/devices/platform/soc/soc:firmware/get_throttled'
 WAIT_TIME_SECONDS = 60
 
@@ -38,7 +38,7 @@ class Job(threading.Thread):
         self.execute = execute
         self.args = args
         self.kwargs = kwargs
-        
+
     def stop(self):
                 self.stopped.set()
                 self.join()
@@ -63,7 +63,7 @@ def get_last_boot():
     return str(as_local(utc_from_timestamp(psutil.boot_time())).isoformat())
 
 def updateSensors():
-   client.publish(topic="homeassistant/sensor/"+ deviceName +"/state", payload='{"temperature": '+ get_temp() +', "disk_use": '+ get_disk_usage() + ', "memory_use": '+ get_memory_usage() +', "cpu_usage": '+ get_cpu_usage() + ', "power_status": "'+ get_rpi_power_status() +'", "last_boot": "'+ get_last_boot() +'"}', qos=1, retain=False)
+   client.publish(topic="homeassistant/sensor/"+ deviceName +"/state", payload='{"temperature": '+ get_temp() +', "disk_use": '+ get_disk_usage() + ', "memory_use": '+ get_memory_usage() +', "cpu_usage": '+ get_cpu_usage() +', "swap_usage": '+ get_swap_usage() +', "power_status": "'+ get_rpi_power_status() +'", "last_boot": "'+ get_last_boot() +'"}', qos=1, retain=False)
 
 def get_temp():
     temp = check_output(["vcgencmd","measure_temp"]).decode("UTF-8")
@@ -77,6 +77,10 @@ def get_memory_usage():
 
 def get_cpu_usage():
     return str(psutil.cpu_percent(interval=None))
+
+def get_swap_usage():
+    return str(psutil.swap_memory().percent)
+
 def get_rpi_power_status():
     _throttled = open(SYSFILE, 'r').read()[:-1]
     _throttled = _throttled[:4]
@@ -106,12 +110,13 @@ if __name__ == "__main__":
     client.publish(topic="homeassistant/sensor/"+ deviceName +"/"+ deviceName +"DiskUse/config", payload='{ "name": "'+ deviceName +'DiskUse", "state_topic": "homeassistant/sensor/'+ deviceName +'/state", "unit_of_measurement": "%", "value_template": "{{ value_json.disk_use}}" }', qos=1, retain=True)
     client.publish(topic="homeassistant/sensor/"+ deviceName +"/"+ deviceName +"MemoryUse/config", payload='{ "name": "'+ deviceName +'MemoryUse", "state_topic": "homeassistant/sensor/'+ deviceName +'/state", "unit_of_measurement": "%", "value_template": "{{ value_json.memory_use}}" }', qos=1, retain=True)
     client.publish(topic="homeassistant/sensor/"+ deviceName +"/"+ deviceName +"CpuUsage/config", payload='{ "name": "'+ deviceName +'CpuUsage", "state_topic": "homeassistant/sensor/'+ deviceName +'/state", "unit_of_measurement": "%", "value_template": "{{ value_json.cpu_usage}}" }', qos=1, retain=True)
+    client.publish(topic="homeassistant/sensor/"+ deviceName +"/"+ deviceName +"SwapUsage/config", payload='{ "name": "'+ deviceName +'SwapUsage", "state_topic": "homeassistant/sensor/'+ deviceName +'/state", "unit_of_measurement": "%", "value_template": "{{ value_json.swap_usage}}" }', qos=1, retain=True)
     client.publish(topic="homeassistant/sensor/"+ deviceName +"/"+ deviceName +"PowerStatus/config", payload='{ "name": "'+ deviceName +'PowerStatus", "state_topic": "homeassistant/sensor/'+ deviceName +'/state", "value_template": "{{ value_json.power_status}}" }', qos=1, retain=True)
     client.publish(topic="homeassistant/sensor/"+ deviceName +"/"+ deviceName +"LastBoot/config", payload='{ "device_class": "timestamp", "name": "'+ deviceName +'LastBoot", "state_topic": "homeassistant/sensor/'+ deviceName +'/state", "value_template": "{{ value_json.last_boot}}" }', qos=1, retain=True)
     job = Job(interval=timedelta(seconds=WAIT_TIME_SECONDS), execute=updateSensors)
     job.start()
     client.loop_forever()
-   
+
     while True:
             try:
                 time.sleep(1)
@@ -120,4 +125,3 @@ if __name__ == "__main__":
                 sys.stdout.flush()
                 job.stop()
                 break
-    
