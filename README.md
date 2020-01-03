@@ -8,12 +8,14 @@ It currently logs the following data:
 * Memory usage
 * Power status of the RPI
 * Last boot
+* Swap usage
 
 # Installation:
 1. Clone this repo
 2. cd system_sensors
 3. pip3 install -r requirements.txt
-4. python3 system_sensors.py
+4. Edit settings.yaml to reflect your setup
+4. python3 system_sensors.py /path/to/settings.yaml
 5. (optional) create service to autostart the script at boot:
     1. sudo nano /etc/systemd/system/system_sensor.service
     2. copy following script:
@@ -25,12 +27,12 @@ It currently logs the following data:
     [Service]
     User=[user]
     Type=idle
-    ExecStart=/usr/bin/python3 /home/pi/sensors/system_sensors.py
+    ExecStart=/usr/bin/python3 /home/pi/sensors/system_sensors.py /path/to/settings.yaml
 
     [Install]
     WantedBy=multi-user.target
     ```
-    3. edit the path to your script path
+    3. edit the path to your script path and settings.yaml
     4. sudo systemctl enable system_sensor.service 
     5. sudo systemctl start system_sensor.service
 

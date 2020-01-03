@@ -1,0 +1,6 @@
+mqtt:
+  hostname: 127.0.0.1
+  port: 1234
+  user: test
+  password: test
+deviceName: test
