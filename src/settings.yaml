@@ -1,6 +1,9 @@
 mqtt:
   hostname: 127.0.0.1
-  port: 1234
+  port: 1234 #defaults to 1883
   user: test
   password: test
 deviceName: test
+timezone: Europe/Brussels
+power_integer_state: false #defaults to false
+update_interval: 60 #Defaults to 60

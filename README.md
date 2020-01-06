@@ -14,9 +14,20 @@ It currently logs the following data:
 1. Clone this repo
 2. cd system_sensors
 3. pip3 install -r requirements.txt
-4. Edit settings.yaml to reflect your setup
-4. python3 system_sensors.py /path/to/settings.yaml
-5. (optional) create service to autostart the script at boot:
+4. Edit settings.yaml to reflect your setup:
+
+| Value  | Required | Default | Description | 
+| ------------- | ------------- | ------------- | ------------- |
+| hostname  | true | \ | Hostname of the MQTT server
+| port  | false | 1883 | Port of the MQTT server
+| user | false | \ | The userlogin( if defined) for the MQTT server
+| password | false | \ | the password ( if defined) for the MQTT server
+| timezone | true | \ | Your local timezone (you can find the list of timezones here: [time zones](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568))
+| power_integer_state | false | false | Return the power state in text or integer form
+| update_interval | false | 60 | The update interval to send new values to the MQTT server 
+
+5. python3 system_sensors.py /path/to/settings.yaml
+6. (optional) create service to autostart the script at boot:
     1. sudo nano /etc/systemd/system/system_sensor.service
     2. copy following script:
     ```shell

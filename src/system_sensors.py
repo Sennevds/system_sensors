@@ -14,7 +14,7 @@ from pytz import timezone
 import argparse
 
 UTC = pytz.utc
-DEFAULT_TIME_ZONE = timezone("Europe/Brussels")  # Local Time zone
+DEFAULT_TIME_ZONE = None
 
 mqttClient = None
 SYSFILE = "/sys/devices/platform/soc/soc:firmware/get_throttled"
@@ -113,22 +113,25 @@ def get_swap_usage():
 def get_rpi_power_status():
     _throttled = open(SYSFILE, "r").read()[:-1]
     _throttled = _throttled[:4]
-    if _throttled == "0":
-        return "Everything is working as intended"
-    elif _throttled == "1000":
-        return "Under-voltage was detected, consider getting a uninterruptible power supply for your Raspberry Pi."
-    elif _throttled == "2000":
-        return "Your Raspberry Pi is limited due to a bad powersupply, replace the power supply cable or power supply itself."
-    elif _throttled == "3000":
-        return "Your Raspberry Pi is limited due to a bad powersupply, replace the power supply cable or power supply itself."
-    elif _throttled == "4000":
-        return "The Raspberry Pi is throttled due to a bad power supply this can lead to corruption and instability, please replace your changer and cables."
-    elif _throttled == "5000":
-        return "The Raspberry Pi is throttled due to a bad power supply this can lead to corruption and instability, please replace your changer and cables."
-    elif _throttled == "8000":
-        return "Your Raspberry Pi is overheating, consider getting a fan or heat sinks."
+    if settings["power_integer_state"]:
+        return _throttled
     else:
-        return "There is a problem with your power supply or system."
+        if _throttled == "0":
+            return "Everything is working as intended"
+        elif _throttled == "1000":
+            return "Under-voltage was detected, consider getting a uninterruptible power supply for your Raspberry Pi."
+        elif _throttled == "2000":
+            return "Your Raspberry Pi is limited due to a bad powersupply, replace the power supply cable or power supply itself."
+        elif _throttled == "3000":
+            return "Your Raspberry Pi is limited due to a bad powersupply, replace the power supply cable or power supply itself."
+        elif _throttled == "4000":
+            return "The Raspberry Pi is throttled due to a bad power supply this can lead to corruption and instability, please replace your changer and cables."
+        elif _throttled == "5000":
+            return "The Raspberry Pi is throttled due to a bad power supply this can lead to corruption and instability, please replace your changer and cables."
+        elif _throttled == "8000":
+            return "Your Raspberry Pi is overheating, consider getting a fan or heat sinks."
+        else:
+            return "There is a problem with your power supply or system."
 
 def check_settings(settings):
     if "mqtt" not in settings:
@@ -137,6 +140,14 @@ def check_settings(settings):
         sys.exit()
     if "hostname" not in settings["mqtt"]:
         print("Hostname not defined in settings.yaml! Please check the documentation")
+        sys.stdout.flush()
+        sys.exit()
+    if "timezone" not in settings:
+        print("Timezone not defined in settings.yaml! Please check the documentation")
+        sys.stdout.flush()
+        sys.exit()
+    if "deviceName" not in settings:
+        print("deviceName not defined in settings.yaml! Please check the documentation")
         sys.stdout.flush()
         sys.exit()
 
@@ -152,6 +163,9 @@ if __name__ == "__main__":
         # use safe_load instead load
         settings = yaml.safe_load(f)
     check_settings(settings)
+    DEFAULT_TIME_ZONE = timezone(settings["timezone"])
+    if "update_interval" in settings:
+        WAIT_TIME_SECONDS = settings["update_interval"]
     mqttClient = mqtt.Client()
     deviceName = settings["deviceName"]
     if "user" in settings["mqtt"]:
