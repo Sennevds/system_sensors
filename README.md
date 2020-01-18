@@ -18,13 +18,15 @@ It currently logs the following data:
 
 | Value  | Required | Default | Description | 
 | ------------- | ------------- | ------------- | ------------- |
-| hostname  | true | \ | Hostname of the MQTT server
-| port  | false | 1883 | Port of the MQTT server
-| user | false | \ | The userlogin( if defined) for the MQTT server
-| password | false | \ | the password ( if defined) for the MQTT server
+| hostname  | true | \ | Hostname of the MQTT broker
+| port  | false | 1883 | Port of the MQTT broker
+| user | false | \ | The userlogin( if defined) for the MQTT broker
+| password | false | \ | the password ( if defined) for the MQTT broker
+| deviceName | true | \ | device name is sent with topic
+| client_id | true | \ | client id to connect to the MQTT broker
 | timezone | true | \ | Your local timezone (you can find the list of timezones here: [time zones](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568))
 | power_integer_state | false | false | Return the power state in text or integer form
-| update_interval | false | 60 | The update interval to send new values to the MQTT server 
+| update_interval | false | 60 | The update interval to send new values to the MQTT broker 
 
 5. python3 system_sensors.py /path/to/settings.yaml
 6. (optional) create service to autostart the script at boot:
