@@ -150,6 +150,10 @@ def check_settings(settings):
         print("deviceName not defined in settings.yaml! Please check the documentation")
         sys.stdout.flush()
         sys.exit()
+    if "client_id" not in settings:
+        print("client_id not defined in settings.yaml! Please check the documentation")
+        sys.stdout.flush()
+        sys.exit()
 
 def _parser():
     """Generate argument parser"""
@@ -166,7 +170,7 @@ if __name__ == "__main__":
     DEFAULT_TIME_ZONE = timezone(settings["timezone"])
     if "update_interval" in settings:
         WAIT_TIME_SECONDS = settings["update_interval"]
-    mqttClient = mqtt.Client()
+    mqttClient = mqtt.Client(client_id=settings["client_id"])
     deviceName = settings["deviceName"]
     if "user" in settings["mqtt"]:
         mqttClient.username_pw_set(
