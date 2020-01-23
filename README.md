@@ -9,6 +9,7 @@ It currently logs the following data:
 * Power status of the RPI
 * Last boot
 * Swap usage
+* Wifi signal strength
 
 # Installation:
 1. Clone this repo
