@@ -67,23 +67,27 @@ def get_last_boot():
 
 
 def updateSensors():
+    payload_str=('{"temperature": '
+    + get_temp()
+    + ', "disk_use": '
+    + get_disk_usage()
+    + ', "memory_use": '
+    + get_memory_usage()
+    + ', "cpu_usage": '
+    + get_cpu_usage()
+    + ', "swap_usage": '
+    + get_swap_usage()
+    + ', "power_status": "'
+    + get_rpi_power_status()
+    + '", "last_boot": "'
+    + get_last_boot())
+    if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
+        payload_str = payload_str + '", "wifi_strength": "' + get_wifi_strength()
+    
+    payload_str = payload_str + '"}'
     mqttClient.publish(
         topic="system-sensors/sensor/" + deviceName + "/state",
-        payload='{"temperature": '
-        + get_temp()
-        + ', "disk_use": '
-        + get_disk_usage()
-        + ', "memory_use": '
-        + get_memory_usage()
-        + ', "cpu_usage": '
-        + get_cpu_usage()
-        + ', "swap_usage": '
-        + get_swap_usage()
-        + ', "power_status": "'
-        + get_rpi_power_status()
-        + '", "last_boot": "'
-        + get_last_boot()
-        + '"}',
+        payload=payload_str,
         qos=1,
         retain=False,
     )
@@ -109,11 +113,14 @@ def get_cpu_usage():
 def get_swap_usage():
     return str(psutil.swap_memory().percent)
 
+def get_wifi_strength():#check_output(["/proc/net/wireless", "grep wlan0"])
+     return check_output(['bash', '-c', "cat /proc/net/wireless | grep wlan0: | awk '{print int($4)}'"]).decode('utf-8').rstrip()
 
 def get_rpi_power_status():
     _throttled = open(SYSFILE, "r").read()[:-1]
     _throttled = _throttled[:4]
-    if settings["power_integer_state"]:
+
+    if "power_integer_state" in settings and settings["power_integer_state"]:
         return _throttled
     else:
         if _throttled == "0":
@@ -184,7 +191,7 @@ if __name__ == "__main__":
         mqttClient.connect(settings["mqtt"]["hostname"], 1883)
     mqttClient.publish(
         topic="homeassistant/sensor/" + deviceName + "/" + deviceName + "Temp/config",
-        payload='{"name":"'
+        payload='{"device_class":"temperature","name":"'
         + deviceName
         + 'Temperature","state_topic":"system-sensors/sensor/'
         + deviceName
@@ -332,6 +339,29 @@ if __name__ == "__main__":
         qos=1,
         retain=True,
     )
+    if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
+        mqttClient.publish(
+            topic="homeassistant/sensor/"
+            + deviceName
+            + "/"
+            + deviceName
+            + "WifiStrength/config",
+            payload='{"device_class":"signal_strength","name":"'
+            + deviceName
+            + 'WifiStrength","state_topic":"system-sensors/sensor/'
+            + deviceName
+            + '/state","value_template":"{{ value_json.wifi_strength}}","unique_id":"'
+            + deviceName.lower()
+            + '_sensor_wifi_strength","device":{"identifiers":["'
+            + deviceName.lower()
+            + '_sensor"],"name":"'
+            + deviceName
+            + 'Sensors","model":"RPI '
+            + deviceName
+            + '","manufacturer":"RPI"}}',
+            qos=1,
+            retain=True,
+        )
     job = Job(interval=timedelta(seconds=WAIT_TIME_SECONDS), execute=updateSensors)
     job.start()
     mqttClient.loop_forever()
