@@ -47,7 +47,7 @@ It currently logs the following data:
     [Install]
     WantedBy=multi-user.target
     ```
-    3. edit the path to your script path and settings.yaml
+    3. edit the path to your script path and settings.yaml. Also make sure you replace [user] with the account from which this script will be run. This is typically 'pi' on default raspbian system.
     4. sudo systemctl enable system_sensor.service 
     5. sudo systemctl start system_sensor.service
 
