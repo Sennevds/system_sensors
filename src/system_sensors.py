@@ -203,7 +203,7 @@ if __name__ == "__main__":
         + deviceName
         + 'Sensors","model":"RPI '
         + deviceName
-        + '","manufacturer":"RPI","icon":"mdi:thermometer"}}',
+        + '","manufacturer":"RPI"}, "icon":"mdi:thermometer"}',
         qos=1,
         retain=True,
     )
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         + deviceName
         + 'Sensors","model":"RPI '
         + deviceName
-        + '","manufacturer":"RPI","icon":"mdi:microsd"}}',
+        + '","manufacturer":"RPI"}, "icon":"mdi:microsd"}',
         qos=1,
         retain=True,
     )
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         + deviceName
         + 'Sensors","model":"RPI '
         + deviceName
-        + '","manufacturer":"RPI","icon":"mdi:memory"}}',
+        + '","manufacturer":"RPI"}, "icon":"mdi:memory"}',
         qos=1,
         retain=True,
     )
@@ -269,7 +269,7 @@ if __name__ == "__main__":
         + deviceName
         + 'Sensors","model":"RPI '
         + deviceName
-        + '","manufacturer":"RPI","icon":"mdi:memory"}}',
+        + '","manufacturer":"RPI"}, "icon":"mdi:memory"}',
         qos=1,
         retain=True,
     )
@@ -291,7 +291,7 @@ if __name__ == "__main__":
         + deviceName
         + 'Sensors","model":"RPI '
         + deviceName
-        + '","manufacturer":"RPI","icon":"mdi:harddisk"}}',
+        + '","manufacturer":"RPI"}, "icon":"mdi:harddisk"}',
         qos=1,
         retain=True,
     )
@@ -313,7 +313,7 @@ if __name__ == "__main__":
         + deviceName
         + 'Sensors","model":"RPI '
         + deviceName
-        + '","manufacturer":"RPI","icon":"mdi:power-plug"}}',
+        + '","manufacturer":"RPI"}, "icon":"mdi:power-plug"}',
         qos=1,
         retain=True,
     )
@@ -335,7 +335,7 @@ if __name__ == "__main__":
         + deviceName
         + 'Sensors","model":"RPI '
         + deviceName
-        + '","manufacturer":"RPI","icon":"mdi:clock"}}',
+        + '","manufacturer":"RPI"}, "icon":"mdi:clock"}',
         qos=1,
         retain=True,
     )
