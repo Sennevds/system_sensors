@@ -10,6 +10,8 @@ It currently logs the following data:
 * Last boot
 * Swap usage
 * Wifi signal strength
+* Amount of upgrades pending
+* Disk usage of external drives
 
 # Installation:
 1. Clone this repo
@@ -29,6 +31,7 @@ It currently logs the following data:
 | power_integer_state | false | false | Return the power state in text or integer form
 | update_interval | false | 60 | The update interval to send new values to the MQTT broker 
 | check_wifi_strength | false | false | Check the wifi strength 
+| external_drives | false | \ | Declare external drives you want to check disk usage of (see example settings.yaml)
 
 5. python3 system_sensors.py /path/to/settings.yaml
 6. (optional) create service to autostart the script at boot:

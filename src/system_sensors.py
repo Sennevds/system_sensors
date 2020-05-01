@@ -71,7 +71,7 @@ def updateSensors():
     payload_str=('{"temperature": '
     + get_temp()
     + ', "disk_use": '
-    + get_disk_usage()
+    + get_disk_usage("/")
     + ', "memory_use": '
     + get_memory_usage()
     + ', "cpu_usage": '
@@ -82,12 +82,14 @@ def updateSensors():
     + get_rpi_power_status()
     + '", "last_boot": "'
     + get_last_boot()
-    + '", "updates": "'
+    + '", "updates": '
     + get_updates())
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
-        payload_str = payload_str + '", "wifi_strength": "' + get_wifi_strength()
-    
-    payload_str = payload_str + '"}'
+        payload_str = payload_str + ', "wifi_strength": ' + get_wifi_strength()
+    if "external_drives" in settings:
+        for drive in settings["external_drives"]:
+            payload_str = payload_str + ', "disk_use_'+ drive.lower() +'": ' + get_disk_usage(settings["external_drives"][drive])
+    payload_str = payload_str + '}'
     mqttClient.publish(
         topic="system-sensors/sensor/" + deviceName + "/state",
         payload=payload_str,
@@ -106,8 +108,8 @@ def get_temp():
     return str(findall("\d+\.\d+", temp)[0])
 
 
-def get_disk_usage():
-    return str(psutil.disk_usage("/").percent)
+def get_disk_usage(path):
+    return str(psutil.disk_usage(path).percent)
 
 
 def get_memory_usage():
@@ -394,6 +396,30 @@ if __name__ == "__main__":
             qos=1,
             retain=True,
         )
+    if "external_drives" in settings:
+        for drive in settings["external_drives"]:
+            mqttClient.publish(
+                topic="homeassistant/sensor/"
+                + deviceName
+                + "/"
+                + deviceName
+                + "DiskUse"+ drive +"/config",
+                payload='{"name":"'
+                + deviceName
+                + 'DiskUse'+ drive +'","state_topic":"system-sensors/sensor/'
+                + deviceName
+                + '/state","unit_of_measurement":"%","value_template":"{{ value_json.disk_use_'+ drive.lower() +'}}","unique_id":"'
+                + deviceName.lower()
+                + '_sensor_disk_use_'+ drive.lower() +'","device":{"identifiers":["'
+                + deviceName.lower()
+                + '_sensor"],"name":"'
+                + deviceName
+                + 'Sensors","model":"RPI '
+                + deviceName
+                + '","manufacturer":"RPI"}, "icon":"mdi:harddisk"}',
+                qos=1,
+                retain=True,
+            )
     job = Job(interval=timedelta(seconds=WAIT_TIME_SECONDS), execute=updateSensors)
     job.start()
     mqttClient.loop_forever()
