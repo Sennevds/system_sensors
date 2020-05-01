@@ -10,6 +10,7 @@ import datetime as dt
 import paho.mqtt.client as mqtt
 import pytz
 import yaml
+import apt
 from pytz import timezone
 import argparse
 
@@ -80,7 +81,9 @@ def updateSensors():
     + ', "power_status": "'
     + get_rpi_power_status()
     + '", "last_boot": "'
-    + get_last_boot())
+    + get_last_boot()
+    + '", "updates": "'
+    + get_updates())
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         payload_str = payload_str + '", "wifi_strength": "' + get_wifi_strength()
     
@@ -92,6 +95,11 @@ def updateSensors():
         retain=False,
     )
 
+def get_updates():
+    cache=apt.Cache()
+    cache.open(None)
+    cache.upgrade()
+    return str(cache.get_changes().__len__())
 
 def get_temp():
     temp = check_output(["vcgencmd", "measure_temp"]).decode("UTF-8")
@@ -339,6 +347,30 @@ if __name__ == "__main__":
         qos=1,
         retain=True,
     )
+
+    mqttClient.publish(
+        topic="homeassistant/sensor/"
+        + deviceName
+        + "/"
+        + deviceName
+        + "Updates/config",
+        payload='{"name":"'
+        + deviceName
+        + 'Updates","state_topic":"system-sensors/sensor/'
+        + deviceName
+        + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
+        + deviceName.lower()
+        + '_sensor_updates","device":{"identifiers":["'
+        + deviceName.lower()
+        + '_sensor"],"name":"'
+        + deviceName
+        + 'Sensors","model":"RPI '
+        + deviceName
+        + '","manufacturer":"RPI"}, "icon":"mdi:cellphone-arrow-down"}',
+        qos=1,
+        retain=True,
+    )
+
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         mqttClient.publish(
             topic="homeassistant/sensor/"
