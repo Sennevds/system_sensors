@@ -83,7 +83,9 @@ def updateSensors():
     + '", "last_boot": "'
     + get_last_boot()
     + '", "updates": '
-    + get_updates())
+    + get_updates()
+    + ', "last_message": "'
+    + time.ctime()+'"')
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         payload_str = payload_str + ', "wifi_strength": ' + get_wifi_strength()
     if "external_drives" in settings:
