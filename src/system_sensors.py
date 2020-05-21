@@ -374,6 +374,29 @@ if __name__ == "__main__":
         qos=1,
         retain=True,
     )
+    
+    mqttClient.publish(
+        topic="homeassistant/sensor/"
+        + deviceName
+        + "/"
+        + deviceName
+        + "LastMessage/config",
+        payload='{"name":"'
+        + deviceName
+        + 'LastMessage","state_topic":"system-sensors/sensor/'
+        + deviceName
+        + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
+        + deviceName.lower()
+        + '_sensor_last_message","device":{"identifiers":["'
+        + deviceName.lower()
+        + '_sensor"],"name":"'
+        + deviceName
+        + 'Sensors","model":"RPI '
+        + deviceName
+        + '","manufacturer":"RPI"}, "icon":"mdi:clock-check"}',
+        qos=1,
+        retain=True,
+    )
 
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         mqttClient.publish(
