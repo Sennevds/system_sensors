@@ -17,7 +17,8 @@ It currently logs the following data:
 1. Clone this repo
 2. cd system_sensors
 3. pip3 install -r requirements.txt
-4. Edit settings.yaml to reflect your setup:
+4. apt-get install python-apt
+5. Edit settings.yaml to reflect your setup:
 
 | Value  | Required | Default | Description | 
 | ------------- | ------------- | ------------- | ------------- |
@@ -33,8 +34,8 @@ It currently logs the following data:
 | check_wifi_strength | false | false | Check the wifi strength 
 | external_drives | false | \ | Declare external drives you want to check disk usage of (see example settings.yaml)
 
-5. python3 system_sensors.py /path/to/settings.yaml
-6. (optional) create service to autostart the script at boot:
+6. python3 system_sensors.py /path/to/settings.yaml
+7. (optional) create service to autostart the script at boot:
     1. sudo nano /etc/systemd/system/system_sensor.service
     2. copy following script:
     ```shell
