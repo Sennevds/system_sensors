@@ -17,7 +17,7 @@ It currently logs the following data:
 1. Clone this repo
 2. cd system_sensors
 3. pip3 install -r requirements.txt
-4. apt-get install python-apt
+4. apt-get install python3-apt
 5. Edit settings.yaml to reflect your setup:
 
 | Value  | Required | Default | Description | 
