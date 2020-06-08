@@ -9,5 +9,6 @@ timezone: Europe/Brussels
 power_integer_state: false #defaults to false
 update_interval: 60 #Defaults to 60
 check_wifi_strength: true
+check_available_updates: true
 external_drives:
   Drive1: /boot/

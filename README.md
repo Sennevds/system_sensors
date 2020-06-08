@@ -31,6 +31,7 @@ It currently logs the following data:
 | timezone | true | \ | Your local timezone (you can find the list of timezones here: [time zones](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568))
 | power_integer_state | false | false | Return the power state in text or integer form
 | update_interval | false | 60 | The update interval to send new values to the MQTT broker 
+| check_available_updates | false | false | Check the # of avaiblable updates 
 | check_wifi_strength | false | false | Check the wifi strength 
 | external_drives | false | \ | Declare external drives you want to check disk usage of (see example settings.yaml)
 

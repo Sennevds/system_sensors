@@ -10,7 +10,6 @@ import datetime as dt
 import paho.mqtt.client as mqtt
 import pytz
 import yaml
-import apt
 from pytz import timezone
 import argparse
 
@@ -82,10 +81,10 @@ def updateSensors():
     + get_rpi_power_status()
     + '", "last_boot": "'
     + get_last_boot()
-    + '", "updates": '
-    + get_updates()
     + ', "last_message": "'
     + time.ctime()+'"')
+    if "check_available_updates" in settings and settings["check_available_updates"]:
+        payload_str = payload_str + ', "updates": ' + get_updates()
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         payload_str = payload_str + ', "wifi_strength": ' + get_wifi_strength()
     if "external_drives" in settings:
@@ -351,29 +350,6 @@ if __name__ == "__main__":
         qos=1,
         retain=True,
     )
-
-    mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "Updates/config",
-        payload='{"name":"'
-        + deviceName
-        + 'Updates","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_updates","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:cellphone-arrow-down"}',
-        qos=1,
-        retain=True,
-    )
     
     mqttClient.publish(
         topic="homeassistant/sensor/"
@@ -397,6 +373,31 @@ if __name__ == "__main__":
         qos=1,
         retain=True,
     )
+
+    if "check_available_updates" in settings and settings["check_available_updates"]:
+        import apt
+        mqttClient.publish(
+            topic="homeassistant/sensor/"
+            + deviceName
+            + "/"
+            + deviceName
+            + "Updates/config",
+            payload='{"name":"'
+            + deviceName
+            + 'Updates","state_topic":"system-sensors/sensor/'
+            + deviceName
+            + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
+            + deviceName.lower()
+            + '_sensor_updates","device":{"identifiers":["'
+            + deviceName.lower()
+            + '_sensor"],"name":"'
+            + deviceName
+            + 'Sensors","model":"RPI '
+            + deviceName
+            + '","manufacturer":"RPI"}, "icon":"mdi:cellphone-arrow-down"}',
+            qos=1,
+            retain=True,
+        )
 
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         mqttClient.publish(
