@@ -81,7 +81,7 @@ def updateSensors():
     + get_rpi_power_status()
     + '", "last_boot": "'
     + get_last_boot()
-    + ', "last_message": "'
+    + '", "last_message": "'
     + time.ctime()+'"')
     if "check_available_updates" in settings and settings["check_available_updates"]:
         payload_str = payload_str + ', "updates": ' + get_updates()
