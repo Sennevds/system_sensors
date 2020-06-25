@@ -448,13 +448,14 @@ if __name__ == "__main__":
             )
     job = Job(interval=timedelta(seconds=WAIT_TIME_SECONDS), execute=updateSensors)
     job.start()
-    mqttClient.loop_forever()
-
+    # mqttClient.loop_forever()
+    mqttClient.loop_start()
     while True:
-        try:
+        try:            
             time.sleep(1)
         except ProgramKilled:
             print("Program killed: running cleanup code")
+            mqttClient.loop_stop()
             sys.stdout.flush()
             job.stop()
             break
