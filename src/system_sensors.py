@@ -235,18 +235,18 @@ def send_config_message(mqttClient):
         + deviceName
         + "DiskUse/config",
         payload='{"name":"'
-        + deviceName
-        + 'DiskUse","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","unit_of_measurement":"%","value_template":"{{ value_json.disk_use}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_disk_use","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:microsd"}',
+                + deviceName
+                + 'DiskUse","state_topic":"system-sensors/sensor/'
+                + deviceName
+                + '/state","unit_of_measurement":"%","value_template":"{{ value_json.disk_use}}","unique_id":"'
+                + deviceName.lower()
+                + '_sensor_disk_use","device":{"identifiers":["'
+                + deviceName.lower()
+                + '_sensor"],"name":"'
+                + deviceName
+                + 'Sensors","model":"RPI '
+                + deviceName
+                + '","manufacturer":"RPI"}, "icon":"mdi:micro-sd"}',
         qos=1,
         retain=True,
     )
