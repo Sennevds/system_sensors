@@ -218,7 +218,9 @@ def send_config_message(mqttClient):
         + deviceName
         + '/state","unit_of_measurement":"°C","value_template":"{{ value_json.temperature}}","unique_id":"'
         + deviceName.lower()
-        + '_sensor_temperature","device":{"identifiers":["'
+        + '_sensor_temperature",'
+        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+        + '"device":{"identifiers":["'
         + deviceName.lower()
         + '_sensor"],"name":"'
         + deviceName
@@ -240,7 +242,9 @@ def send_config_message(mqttClient):
                 + deviceName
                 + '/state","unit_of_measurement":"%","value_template":"{{ value_json.disk_use}}","unique_id":"'
                 + deviceName.lower()
-                + '_sensor_disk_use","device":{"identifiers":["'
+                + '_sensor_disk_use",'
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + '"device":{"identifiers":["'
                 + deviceName.lower()
                 + '_sensor"],"name":"'
                 + deviceName
@@ -262,7 +266,9 @@ def send_config_message(mqttClient):
         + deviceName
         + '/state","unit_of_measurement":"%","value_template":"{{ value_json.memory_use}}","unique_id":"'
         + deviceName.lower()
-        + '_sensor_memory_use","device":{"identifiers":["'
+        + '_sensor_memory_use",'
+        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+        + '"device":{"identifiers":["'
         + deviceName.lower()
         + '_sensor"],"name":"'
         + deviceName
@@ -284,7 +290,9 @@ def send_config_message(mqttClient):
         + deviceName
         + '/state","unit_of_measurement":"%","value_template":"{{ value_json.cpu_usage}}","unique_id":"'
         + deviceName.lower()
-        + '_sensor_cpu_usage","device":{"identifiers":["'
+        + '_sensor_cpu_usage",'
+        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+        + '"device":{"identifiers":["'
         + deviceName.lower()
         + '_sensor"],"name":"'
         + deviceName
@@ -306,7 +314,9 @@ def send_config_message(mqttClient):
         + deviceName
         + '/state","unit_of_measurement":"%","value_template":"{{ value_json.swap_usage}}","unique_id":"'
         + deviceName.lower()
-        + '_sensor_swap_usage","device":{"identifiers":["'
+        + '_sensor_swap_usage",'
+        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+        + '"device":{"identifiers":["'
         + deviceName.lower()
         + '_sensor"],"name":"'
         + deviceName
@@ -328,7 +338,9 @@ def send_config_message(mqttClient):
         + deviceName
         + '/state","value_template":"{{ value_json.power_status}}","unique_id":"'
         + deviceName.lower()
-        + '_sensor_power_status","device":{"identifiers":["'
+        + '_sensor_power_status",'
+        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+        + '"device":{"identifiers":["'
         + deviceName.lower()
         + '_sensor"],"name":"'
         + deviceName
@@ -350,7 +362,9 @@ def send_config_message(mqttClient):
         + deviceName
         + '/state","value_template":"{{ value_json.last_boot}}","unique_id":"'
         + deviceName.lower()
-        + '_sensor_last_boot","device":{"identifiers":["'
+        + '_sensor_last_boot",'
+        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+        + '"device":{"identifiers":["'
         + deviceName.lower()
         + '_sensor"],"name":"'
         + deviceName
@@ -373,7 +387,9 @@ def send_config_message(mqttClient):
         + deviceName
         + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
         + deviceName.lower()
-        + '_sensor_last_message","device":{"identifiers":["'
+        + '_sensor_last_message",'
+        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+        + '"device":{"identifiers":["'
         + deviceName.lower()
         + '_sensor"],"name":"'
         + deviceName
@@ -401,7 +417,9 @@ def send_config_message(mqttClient):
                 + deviceName
                 + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
                 + deviceName.lower()
-                + '_sensor_updates","device":{"identifiers":["'
+                + '_sensor_updates",'
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + '"device":{"identifiers":["'
                 + deviceName.lower()
                 + '_sensor"],"name":"'
                 + deviceName
@@ -425,7 +443,9 @@ def send_config_message(mqttClient):
             + deviceName
             + '/state","unit_of_measurement":"dBm","value_template":"{{ value_json.wifi_strength}}","unique_id":"'
             + deviceName.lower()
-            + '_sensor_wifi_strength","device":{"identifiers":["'
+            + '_sensor_wifi_strength",'
+            + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+            + '"device":{"identifiers":["'
             + deviceName.lower()
             + '_sensor"],"name":"'
             + deviceName
@@ -457,7 +477,9 @@ def send_config_message(mqttClient):
                 + deviceName.lower()
                 + "_sensor_disk_use_"
                 + drive.lower()
-                + '","device":{"identifiers":["'
+                + '",'
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + '"device":{"identifiers":["'
                 + deviceName.lower()
                 + '_sensor"],"name":"'
                 + deviceName
@@ -467,6 +489,8 @@ def send_config_message(mqttClient):
                 qos=1,
                 retain=True,
             )
+
+    mqttClient.publish(f"system-sensors/sensor/{deviceName}/availability", "online", retain=True)
 
 def _parser():
     """Generate argument parser"""
@@ -494,6 +518,7 @@ if __name__ == "__main__":
     mqttClient.on_connect = on_connect                      #attach function to callback
     mqttClient.on_message = on_message
     deviceName = settings["deviceName"]
+    mqttClient.will_set(f"system-sensors/sensor/{deviceName}/availability", "offline", retain=True)
     if "user" in settings["mqtt"]:
         mqttClient.username_pw_set(
             settings["mqtt"]["user"], settings["mqtt"]["password"]
@@ -519,6 +544,7 @@ if __name__ == "__main__":
             time.sleep(1)
         except ProgramKilled:
             print("Program killed: running cleanup code")
+            mqttClient.publish(f"system-sensors/sensor/{deviceName}/availability", "offline", retain=True)
             mqttClient.disconnect()
             mqttClient.loop_stop()
             sys.stdout.flush()
