@@ -13,6 +13,10 @@ It currently logs the following data:
 * Amount of upgrades pending
 * Disk usage of external drives
 
+# System Requirements
+
+You need to have at least __python 3.6__ installed to use System Sensors.
+
 # Installation:
 1. Clone this repo
 2. cd system_sensors
