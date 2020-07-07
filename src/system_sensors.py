@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-from subprocess import check_output
-from re import findall
-import psutil
-import sys
-import os
-import threading, time, signal
-from datetime import timedelta
+import argparse
 import datetime as dt
+import signal
+import sys
+import threading
+import time
+from datetime import timedelta
+from re import findall
+from subprocess import check_output
+
 import paho.mqtt.client as mqtt
+import psutil
 import pytz
 import yaml
 from pytz import timezone
-import argparse
+
 try:
     import apt
+
     apt_disabled = False
 except ImportError:
     apt_disabled = True
@@ -70,11 +74,12 @@ def as_local(dattim: dt.datetime) -> dt.datetime:
 def get_last_boot():
     return str(as_local(utc_from_timestamp(psutil.boot_time())).isoformat())
 
+
 def on_message(client, userdata, message):
     print (f"Message received: {message.payload.decode()}"  )
     if(message.payload.decode() == "online"):
         send_config_message(client)
-    
+
 
 def updateSensors():
     payload_str = (
@@ -211,175 +216,113 @@ def check_settings(settings):
 def send_config_message(mqttClient):
     print("send config message")
     mqttClient.publish(
-        topic="homeassistant/sensor/" + deviceName + "/" + deviceName + "Temp/config",
-        payload='{"device_class":"temperature","name":"'
-        + deviceName
-        + 'Temperature","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","unit_of_measurement":"°C","value_template":"{{ value_json.temperature}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_temperature","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:thermometer"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}Temp/config",
+        payload='{"device_class":"temperature",'
+                + f"\"name\":\"{deviceName} Temperature\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"°C",'
+                + '"value_template":"{{value_json.temperature}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_temperature\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:thermometer\"}}",
         qos=1,
         retain=True,
     )
     mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "DiskUse/config",
-        payload='{"name":"'
-        + deviceName
-        + 'DiskUse","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","unit_of_measurement":"%","value_template":"{{ value_json.disk_use}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_disk_use","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:microsd"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}DiskUse/config",
+        payload=f"{{\"name\":\"{deviceName} DiskUse\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"%",'
+                + '"value_template":"{{value_json.disk_use}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_disk_use\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:micro-sd\"}}",
         qos=1,
         retain=True,
     )
     mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "MemoryUse/config",
-        payload='{"name":"'
-        + deviceName
-        + 'MemoryUse","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","unit_of_measurement":"%","value_template":"{{ value_json.memory_use}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_memory_use","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:memory"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}MemoryUse/config",
+        payload=f"{{\"name\":\"{deviceName} MemoryUse\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"%",'
+                + '"value_template":"{{value_json.memory_use}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_memory_use\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:memory\"}}",
         qos=1,
         retain=True,
     )
     mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "CpuUsage/config",
-        payload='{"name":"'
-        + deviceName
-        + 'CpuUsage","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","unit_of_measurement":"%","value_template":"{{ value_json.cpu_usage}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_cpu_usage","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:memory"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}CpuUsage/config",
+        payload=f"{{\"name\":\"{deviceName} CpuUsage\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"%",'
+                + '"value_template":"{{value_json.cpu_usage}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_cpu_usage\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:memory\"}}",
         qos=1,
         retain=True,
     )
     mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "SwapUsage/config",
-        payload='{"name":"'
-        + deviceName
-        + 'SwapUsage","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","unit_of_measurement":"%","value_template":"{{ value_json.swap_usage}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_swap_usage","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:harddisk"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}SwapUsage/config",
+        payload=f"{{\"name\":\"{deviceName} SwapUsage\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"%",'
+                + '"value_template":"{{value_json.swap_usage}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_swap_usage\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:harddisk\"}}",
         qos=1,
         retain=True,
     )
     mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "PowerStatus/config",
-        payload='{"name":"'
-        + deviceName
-        + 'PowerStatus","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","value_template":"{{ value_json.power_status}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_power_status","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:power-plug"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}PowerStatus/config",
+        payload=f"{{\"name\":\"{deviceName} PowerStatus\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.power_status}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_power_status\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:power-plug\"}}",
         qos=1,
         retain=True,
     )
     mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "LastBoot/config",
-        payload='{"device_class":"timestamp","name":"'
-        + deviceName
-        + 'LastBoot","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","value_template":"{{ value_json.last_boot}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_last_boot","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:clock"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}LastBoot/config",
+        payload=f"{{\"name\":\"{deviceName} LastBoot\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.last_boot}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_last_boot\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:clock\"}}",
         qos=1,
         retain=True,
     )
 
     mqttClient.publish(
-        topic="homeassistant/sensor/"
-        + deviceName
-        + "/"
-        + deviceName
-        + "LastMessage/config",
-        payload='{"name":"'
-        + deviceName
-        + 'LastMessage","state_topic":"system-sensors/sensor/'
-        + deviceName
-        + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
-        + deviceName.lower()
-        + '_sensor_last_message","device":{"identifiers":["'
-        + deviceName.lower()
-        + '_sensor"],"name":"'
-        + deviceName
-        + 'Sensors","model":"RPI '
-        + deviceName
-        + '","manufacturer":"RPI"}, "icon":"mdi:clock-check"}',
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}LastMessage/config",
+        payload=f"{{\"name\":\"{deviceName} LastMessage\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.last_message}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_last_message\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:clock-check\"}}",
         qos=1,
         retain=True,
     )
@@ -390,83 +333,54 @@ def send_config_message(mqttClient):
             print("import of apt failed!")
         else:
             mqttClient.publish(
-                topic="homeassistant/sensor/"
-                + deviceName
-                + "/"
-                + deviceName
-                + "Updates/config",
-                payload='{"name":"'
-                + deviceName
-                + 'Updates","state_topic":"system-sensors/sensor/'
-                + deviceName
-                + '/state","value_template":"{{ value_json.updates}}","unique_id":"'
-                + deviceName.lower()
-                + '_sensor_updates","device":{"identifiers":["'
-                + deviceName.lower()
-                + '_sensor"],"name":"'
-                + deviceName
-                + 'Sensors","model":"RPI '
-                + deviceName
-                + '","manufacturer":"RPI"}, "icon":"mdi:cellphone-arrow-down"}',
+                topic=f"homeassistant/sensor/{deviceName}/{deviceName}Updates/config",
+                payload=f"{{\"name\":\"{deviceName} Updates\","
+                        + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                        + '"value_template":"{{value_json.updates}}",'
+                        + f"\"unique_id\":\"{deviceName.lower()}_sensor_updates\","
+                        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                        + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                        + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                        + f"\"icon\":\"mdi:cellphone-arrow-down\"}}",
                 qos=1,
                 retain=True,
             )
 
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         mqttClient.publish(
-            topic="homeassistant/sensor/"
-            + deviceName
-            + "/"
-            + deviceName
-            + "WifiStrength/config",
-            payload='{"device_class":"signal_strength","name":"'
-            + deviceName
-            + 'WifiStrength","state_topic":"system-sensors/sensor/'
-            + deviceName
-            + '/state","unit_of_measurement":"dBm","value_template":"{{ value_json.wifi_strength}}","unique_id":"'
-            + deviceName.lower()
-            + '_sensor_wifi_strength","device":{"identifiers":["'
-            + deviceName.lower()
-            + '_sensor"],"name":"'
-            + deviceName
-            + 'Sensors","model":"RPI '
-            + deviceName
-            + '","manufacturer":"RPI"}}',
+            topic=f"homeassistant/sensor/{deviceName}/{deviceName}WifiStrength/config",
+            payload='{"device_class":"signal_strength",'
+                    + f"\"name\":\"{deviceName} WifiStrength\","
+                    + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                    + '"unit_of_measurement":"dBm",'
+                    + '"value_template":"{{value_json.wifi_strength}}",'
+                    + f"\"unique_id\":\"{deviceName.lower()}_sensor_wifi_strength\","
+                    + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                    + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                    + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                    + f"\"icon\":\"mdi:wifi\"}}",
             qos=1,
             retain=True,
         )
     if "external_drives" in settings:
         for drive in settings["external_drives"]:
             mqttClient.publish(
-                topic="homeassistant/sensor/"
-                + deviceName
-                + "/"
-                + deviceName
-                + "DiskUse"
-                + drive
-                + "/config",
-                payload='{"name":"'
-                + deviceName
-                + "DiskUse"
-                + drive
-                + '","state_topic":"system-sensors/sensor/'
-                + deviceName
-                + '/state","unit_of_measurement":"%","value_template":"{{ value_json.disk_use_'
-                + drive.lower()
-                + '}}","unique_id":"'
-                + deviceName.lower()
-                + "_sensor_disk_use_"
-                + drive.lower()
-                + '","device":{"identifiers":["'
-                + deviceName.lower()
-                + '_sensor"],"name":"'
-                + deviceName
-                + 'Sensors","model":"RPI '
-                + deviceName
-                + '","manufacturer":"RPI"}, "icon":"mdi:harddisk"}',
+                topic=f"homeassistant/sensor/{deviceName}/{deviceName}DiskUse{drive}/config",
+                payload=f"{{\"name\":\"{deviceName} DiskUse {drive}\","
+                        + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                        + '"unit_of_measurement":"%",'
+                        + f"\"value_template\":\"{{{{value_json.disk_use_{drive.lower()}}}}}\","
+                        + f"\"unique_id\":\"{deviceName.lower()}_sensor_disk_use_{drive.lower()}\","
+                        + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                        + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                        + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                        + f"\"icon\":\"mdi:harddisk\"}}",
                 qos=1,
                 retain=True,
             )
+
+    mqttClient.publish(f"system-sensors/sensor/{deviceName}/availability", "online", retain=True)
+
 
 def _parser():
     """Generate argument parser"""
@@ -474,12 +388,14 @@ def _parser():
     parser.add_argument("settings", help="path to the settings file")
     return parser
 
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected to broker")
         client.subscribe("hass/status")
-    else: 
+    else:
         print("Connection failed")
+
 
 if __name__ == "__main__":
     args = _parser().parse_args()
@@ -494,6 +410,7 @@ if __name__ == "__main__":
     mqttClient.on_connect = on_connect                      #attach function to callback
     mqttClient.on_message = on_message
     deviceName = settings["deviceName"]
+    mqttClient.will_set(f"system-sensors/sensor/{deviceName}/availability", "offline", retain=True)
     if "user" in settings["mqtt"]:
         mqttClient.username_pw_set(
             settings["mqtt"]["user"], settings["mqtt"]["password"]
@@ -510,15 +427,16 @@ if __name__ == "__main__":
         print("something whent wrong")
     job = Job(interval=timedelta(seconds=WAIT_TIME_SECONDS), execute=updateSensors)
     job.start()
-    
+
     mqttClient.loop_start()
-    
+
     while True:
         try:
             sys.stdout.flush()
             time.sleep(1)
         except ProgramKilled:
             print("Program killed: running cleanup code")
+            mqttClient.publish(f"system-sensors/sensor/{deviceName}/availability", "offline", retain=True)
             mqttClient.disconnect()
             mqttClient.loop_stop()
             sys.stdout.flush()
