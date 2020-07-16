@@ -131,8 +131,8 @@ def get_updates():
 
 
 def get_temp():
-    temp = check_output(["vcgencmd", "measure_temp"]).decode("UTF-8")
-    return str(findall("\d+\.\d+", temp)[0])
+    temp = check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"]).decode("UTF-8")
+    return str(temp[0] + temp[1] + "." + temp[2])
 
 
 def get_disk_usage(path):
