@@ -152,17 +152,16 @@ def get_swap_usage():
 
 
 def get_wifi_strength():  # check_output(["/proc/net/wireless", "grep wlan0"])
-    return (
-        check_output(
-            [
-                "bash",
-                "-c",
-                "cat /proc/net/wireless | grep wlan0: | awk '{print int($4)}'",
-            ]
-        )
-        .decode("utf-8")
-        .rstrip()
-    )
+    wifi_strength_value = check_output(
+                              [
+                                  "bash",
+                                  "-c",
+                                  "cat /proc/net/wireless | grep wlan0: | awk '{print int($4)}'",
+                              ]
+                          ).decode("utf-8").rstrip()
+    if not wifi_strength_value:
+        wifi_strength_value = "0"
+    return (wifi_strength_value)
 
 
 def get_rpi_power_status():
