@@ -13,6 +13,7 @@ import paho.mqtt.client as mqtt
 import psutil
 import pytz
 import yaml
+import csv
 from pytz import timezone
 
 try:
@@ -23,6 +24,14 @@ except ImportError:
     apt_disabled = True
 UTC = pytz.utc
 DEFAULT_TIME_ZONE = None
+
+# Get OS information
+OS_DATA = {}
+with open("/etc/os-release") as f:
+    reader = csv.reader(f, delimiter="=")
+    for row in reader:
+        if row:
+            OS_DATA[row[0]] = row[1]
 
 mqttClient = None
 SYSFILE = "/sys/devices/platform/soc/soc:firmware/get_throttled"
@@ -130,10 +139,16 @@ def get_updates():
     return str(cache.get_changes().__len__())
 
 
+# Temperature method depending on system distro
 def get_temp():
-    temp = check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"]).decode("UTF-8")
-    return str(temp[0] + temp[1] + "." + temp[2])
-
+    temp = "";
+    if "rasp" in OS_DATA["ID"]:
+        reading = check_output(["vcgencmd", "measure_temp"]).decode("UTF-8")
+        temp = str(findall("\d+\.\d+", reading)[0])
+    else:
+        reading = check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"]).decode("UTF-8")
+        temp = str(reading[0] + reading[1] + "." + reading[2])
+    return temp
 
 def get_disk_usage(path):
     return str(psutil.disk_usage(path).percent)
