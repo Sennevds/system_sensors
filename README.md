@@ -41,7 +41,7 @@ You need to have at least __python 3.6__ installed to use System Sensors.
 
 6. python3 system_sensors.py /path/to/settings.yaml
 7. (optional) create service to autostart the script at boot:
-    1. sudo nano /etc/systemd/system/system_sensor.service
+    1. sudo nano /etc/systemd/system/system_sensors.service
     2. copy following script:
     ```shell
     [Unit]
@@ -57,8 +57,8 @@ You need to have at least __python 3.6__ installed to use System Sensors.
     WantedBy=multi-user.target
     ```
     3. edit the path to your script path and settings.yaml. Also make sure you replace [user] with the account from which this script will be run. This is typically 'pi' on default raspbian system.
-    4. sudo systemctl enable system_sensor.service 
-    5. sudo systemctl start system_sensor.service
+    4. sudo systemctl enable system_sensors.service 
+    5. sudo systemctl start system_sensors.service
 
 # Home Assistant configuration:
 ## Configuration:
