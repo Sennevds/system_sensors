@@ -22,7 +22,7 @@ You need to have at least __python 3.6__ installed to use System Sensors.
 2. cd system_sensors
 3. pip3 install -r requirements.txt
 4. apt-get install python3-apt
-5. Edit settings.yaml to reflect your setup:
+5. Edit settings_example.yaml in "~/system_sensors/src" to reflect your setup and save as settings.yaml:
 
 | Value  | Required | Default | Description | 
 | ------------- | ------------- | ------------- | ------------- |
@@ -49,14 +49,14 @@ You need to have at least __python 3.6__ installed to use System Sensors.
     After=multi-user.target
 
     [Service]
-    User=[user]
+    User=pi
     Type=idle
-    ExecStart=/usr/bin/python3 /home/pi/sensors/system_sensors.py /path/to/settings.yaml
+    ExecStart=/usr/bin/python3 /home/pi/system_sensors/src/system_sensors.py /home/pi/system_sensors/src/settings.yaml
 
     [Install]
     WantedBy=multi-user.target
     ```
-    3. edit the path to your script path and settings.yaml. Also make sure you replace [user] with the account from which this script will be run. This is typically 'pi' on default raspbian system.
+    3. edit the path to your script path and settings.yaml. Also make sure you replace pi in "User=pi" with the account from which this script will be run. This is typically 'pi' on default raspbian system.
     4. sudo systemctl enable system_sensors.service 
     5. sudo systemctl start system_sensors.service
 
