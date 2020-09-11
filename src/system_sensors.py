@@ -83,6 +83,9 @@ def as_local(dattim: dt.datetime) -> dt.datetime:
 def get_last_boot():
     return str(as_local(utc_from_timestamp(psutil.boot_time())).isoformat())
 
+def get_last_message():
+    return str(as_local(utc_from_timestamp(time.ctime())).isoformat())
+
 
 def on_message(client, userdata, message):
     print (f"Message received: {message.payload.decode()}"  )
@@ -107,7 +110,7 @@ def updateSensors():
         + '", "last_boot": "'
         + get_last_boot()
         + '", "last_message": "'
-        + time.ctime()
+        + get_last_message()
         + '"'
     )
     if "check_available_updates" in settings and settings["check_available_updates"] and not apt_disabled:
