@@ -84,7 +84,7 @@ def get_last_boot():
     return str(as_local(utc_from_timestamp(psutil.boot_time())).isoformat())
 
 def get_last_message():
-    return str(as_local(utc_from_timestamp(time.ctime())).isoformat())
+    return str(as_local(utc_from_timestamp(time.time())).isoformat())
 
 
 def on_message(client, userdata, message):
