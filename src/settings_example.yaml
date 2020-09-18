@@ -6,7 +6,6 @@ mqtt:
 deviceName: test
 client_id: test
 timezone: Europe/Brussels
-power_integer_state: false #defaults to false
 update_interval: 60 #Defaults to 60
 check_wifi_strength: true
 check_available_updates: true
