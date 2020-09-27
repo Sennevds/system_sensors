@@ -387,6 +387,7 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         write_message_to_console("Connected to broker")
         client.subscribe("hass/status")
+        mqttClient.publish(f"system-sensors/sensor/{deviceName}/availability", "online", retain=True)
     else:
         write_message_to_console("Connection failed")
 
