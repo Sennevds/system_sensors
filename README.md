@@ -113,8 +113,7 @@ Config:
 Example:
 
 ![alt text](images/example.png?raw=true "Example")
-
-[commits-shield]: https://img.shields.io/github/commit-activity/y/sennevds/system_sensors.svg?style=for-the-badge
+[commits-shield]: https://img.shields.io/github/commit-activity/y/Sennevds/system_sensors?style=for-the-badge
 [commits]: https://github.com/sennevds/system_sensors/commits/master
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
 [forum]: https://community.home-assistant.io/t/remote-rpi-system-monitor/129274
