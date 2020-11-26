@@ -3,6 +3,7 @@ import argparse
 import datetime as dt
 import signal
 import sys
+import socket
 import threading
 import time
 from datetime import timedelta
@@ -83,7 +84,6 @@ def as_local(dattim: dt.datetime) -> dt.datetime:
 
     return dattim.astimezone(DEFAULT_TIME_ZONE)
 
-
 def get_last_boot():
     return str(as_local(utc_from_timestamp(psutil.boot_time())).isoformat())
 
@@ -107,7 +107,9 @@ def updateSensors():
         + f'"swap_usage": {get_swap_usage()},'
         + f'"power_status": "{get_rpi_power_status()}",'
         + f'"last_boot": "{get_last_boot()}",'
-        + f'"last_message": "{get_last_message()}"'
+        + f'"last_message": "{get_last_message()}",'
+        + f'"host_name": "{get_host_name()}",'
+        + f'"host_ip": "{get_host_ip()}"'
     )
     if "check_available_updates" in settings and settings["check_available_updates"] and not apt_disabled:
         payload_str = payload_str + f', "updates": {get_updates()}' 
@@ -177,6 +179,21 @@ def get_wifi_strength():  # check_output(["/proc/net/wireless", "grep wlan0"])
 def get_rpi_power_status():
     return _underVoltage.get()
 
+def get_host_name():
+    return socket.gethostname()
+
+def get_host_ip():
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(('8.8.8.8', 80))
+        return sock.getsockname()[0]
+    except socket.error:
+        try:
+            return socket.gethostbyname(socket.gethostname())
+        except socket.gaierror:
+            return '127.0.0.1'
+    finally:
+        sock.close() 
 
 def check_settings(settings):
     if "mqtt" not in settings:
@@ -305,7 +322,34 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}hostName/config",
+        payload='{"device_class":"timestamp",'
+                + f"\"name\":\"{deviceName} HostName\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.host_name}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_host_name\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:card-account-details\"}}",
+        qos=1,
+        retain=True,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/{deviceName}hostIp/config",
+        payload='{"device_class":"timestamp",'
+                + f"\"name\":\"{deviceName} HostIp\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.host_ip}}",'
+                + f"\"unique_id\":\"{deviceName.lower()}_sensor_host_ip\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName.lower()}_sensor\"],"
+                + f"\"name\":\"{deviceName} Sensors\",\"model\":\"RPI {deviceName}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:lan\"}}",
+        qos=1,
+        retain=True,
+    )
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/{deviceName}LastMessage/config",
         payload='{"device_class":"timestamp",'
