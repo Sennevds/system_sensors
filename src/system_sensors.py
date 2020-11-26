@@ -4,6 +4,7 @@ import datetime as dt
 import signal
 import sys
 import socket
+import platform
 import threading
 import time
 from datetime import timedelta
@@ -110,7 +111,8 @@ def updateSensors():
         + f'"last_message": "{get_last_message()}",'
         + f'"host_name": "{get_host_name()}",'
         + f'"host_ip": "{get_host_ip()}",'
-        + f'"host_os": "{get_host_os()}"'
+        + f'"host_os": "{get_host_os()}",'
+        + f'"host_arch": "{get_host_arch()}"'
     )
     if "check_available_updates" in settings and settings["check_available_updates"] and not apt_disabled:
         payload_str = payload_str + f', "updates": {get_updates()}' 
@@ -196,8 +198,17 @@ def get_host_ip():
     finally:
         sock.close()
 
-def get_host_os():    
-    return OS_DATA["PRETTY_NAME"]
+def get_host_os():
+    try:     
+        return OS_DATA["PRETTY_NAME"]
+    except:
+        return "Unknown"
+
+def get_host_arch():    
+    try:     
+        return platform.machine()
+    except:
+        return "Unknown"
 
 def remove_old_topics():
     mqttClient.publish(
@@ -280,6 +291,12 @@ def remove_old_topics():
     )
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Host_OS/config",
+        payload='',
+        qos=1,
+        retain=False,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Host_Arch/config",
         payload='',
         qos=1,
         retain=False,
@@ -462,6 +479,19 @@ def send_config_message(mqttClient):
         retain=True,
     )
     mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/host_arch/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Host Architecture\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.host_arch}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_host_arch\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:chip\"}}",
+        qos=1,
+        retain=True,
+    )
+    mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/last_message/config",
         payload='{"device_class":"timestamp",'
                 + f"\"name\":\"{deviceNameDisplay} Last Message\","
@@ -475,7 +505,8 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-    
+
+
 
     if "check_available_updates" in settings and settings["check_available_updates"]:
         # import apt
