@@ -183,7 +183,17 @@ def get_host_name():
     return socket.gethostname()
 
 def get_host_ip():
-    return socket.gethostbyname(socket.gethostname())
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(('8.8.8.8', 80))
+        return sock.getsockname()[0]
+    except socket.error:
+        try:
+            return socket.gethostbyname(socket.gethostname())
+        except socket.gaierror:
+            return '127.0.0.1'
+    finally:
+        sock.close() 
 
 def check_settings(settings):
     if "mqtt" not in settings:
