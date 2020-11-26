@@ -194,7 +194,7 @@ def get_host_ip():
             return '127.0.0.1'
     finally:
         sock.close() 
-        
+
 def remove_old_topics():
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Temp/config",
@@ -402,8 +402,7 @@ def send_config_message(mqttClient):
     )
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/hostname/config",
-        payload='{"device_class":"timestamp",'
-                + f"\"name\":\"{deviceNameDisplay} Hostname\","
+        payload=f"{{\"name\":\"{deviceNameDisplay} Hostname\","
                 + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
                 + '"value_template":"{{value_json.host_name}}",'
                 + f"\"unique_id\":\"{deviceName}_sensor_host_name\","
@@ -416,8 +415,7 @@ def send_config_message(mqttClient):
     )
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/host_ip/config",
-        payload='{"device_class":"timestamp",'
-                + f"\"name\":\"{deviceNameDisplay} Host Ip\","
+        payload=f"{{\"name\":\"{deviceNameDisplay} Host Ip\","
                 + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
                 + '"value_template":"{{value_json.host_ip}}",'
                 + f"\"unique_id\":\"{deviceName}_sensor_host_ip\","
