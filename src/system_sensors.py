@@ -277,30 +277,7 @@ def remove_old_topics():
         qos=1,
         retain=False,
     )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Hostname/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Host_Ip/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Host_OS/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Host_Arch/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
+
     if "external_drives" in settings:
         for drive in settings["external_drives"]:
             mqttClient.publish(
@@ -424,7 +401,7 @@ def send_config_message(mqttClient):
         retain=True,
     )
     
-    
+   
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/last_boot/config",
         payload='{"device_class":"timestamp",'
