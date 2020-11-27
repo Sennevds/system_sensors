@@ -22,6 +22,9 @@ It currently logs the following data:
 * Wifi signal strength
 * Amount of upgrades pending
 * Disk usage of external drives
+* Hostname
+* Host local IP
+* Host OS distro and version
 
 # System Requirements
 
