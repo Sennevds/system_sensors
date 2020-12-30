@@ -525,12 +525,12 @@ def send_config_message(mqttClient):
     if "external_drives" in settings:
         for drive in settings["external_drives"]:
             mqttClient.publish(
-                topic=f"homeassistant/sensor/{deviceName}/disk_use_{drive}/config",
+                topic=f"homeassistant/sensor/{deviceName}/disk_use_{drive.lower()}/config",
                 payload=f"{{\"name\":\"{deviceNameDisplay} Disk Use {drive}\","
                         + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
                         + '"unit_of_measurement":"%",'
-                        + f"\"value_template\":\"{{{{value_json.disk_use_{drive}}}}}\","
-                        + f"\"unique_id\":\"{deviceName}_sensor_disk_use_{drive}\","
+                        + f"\"value_template\":\"{{{{value_json.disk_use_{drive.lower()}}}}}\","
+                        + f"\"unique_id\":\"{deviceName}_sensor_disk_use_{drive.lower()}\","
                         + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
                         + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
                         + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
