@@ -1,0 +1,15 @@
+version: '3'
+services:
+  monitoring:
+    build: .
+    restart: always
+    container_name: system-sensors
+    devices:
+      - /dev/vchiq
+    volumes:
+      - /opt/vc:/opt/vc
+    environment:
+      - MQTT_HOST=localhost
+      - MQTT_PORT=1883
+      - DEVICE_NAME=myPi
+      - LD_LIBRARY_PATH=/opt/vc/lib
