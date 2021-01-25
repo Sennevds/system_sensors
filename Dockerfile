@@ -1,4 +1,4 @@
-FROM arm32v7/python:latest
+FROM arm32v7/python:3.9-alpine
 
 ENV TZ Europe/Berlin
 ENV MQTT_HOST localhost
