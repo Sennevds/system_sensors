@@ -83,35 +83,35 @@ Config:
         cards:
           - type: custom:mini-graph-card
             entities:
-              - sensor.deconzcpuusage
+              - sensor.deconz_cpu_usage
             name: CPU
             line_color: '#2980b9'
             line_width: 2
             hours_to_show: 24
           - type: custom:mini-graph-card
             entities:
-              - sensor.deconztemperature
+              - sensor.deconz_temperature
             name: Temp
             line_color: '#2980b9'
             line_width: 2
             hours_to_show: 24
       - type: custom:bar-card
-        entity: sensor.deconzdiskuse
+        entity: sensor.deconz_disk_use
         title: HDD
         title_position: inside
         align: split
         show_icon: true
         color: '#00ba6a'
       - type: custom:bar-card
-        entity: sensor.deconzmemoryuse
+        entity: sensor.deconz_memory_use
         title: RAM
         title_position: inside
         align: split
         show_icon: true
       - type: entities
         entities:
-          - sensor.deconzlastboot
-          - sensor.deconzpowerstatus
+          - sensor.deconz_last_boot
+          - sensor.deconz_under_voltage
 ```
 Example:
 
