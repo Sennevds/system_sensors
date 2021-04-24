@@ -112,7 +112,10 @@ def updateSensors():
         + f'"host_name": "{get_host_name()}",'
         + f'"host_ip": "{get_host_ip()}",'
         + f'"host_os": "{get_host_os()}",'
-        + f'"host_arch": "{get_host_arch()}"'
+        + f'"host_arch": "{get_host_arch()}",'
+        + f'"load_1m": "{get_load(0)}",'
+        + f'"load_5m": "{get_load(1)}",'
+        + f'"load_15m": "{get_load(2)}"'
     )
     if "check_available_updates" in settings and settings["check_available_updates"] and not apt_disabled:
         payload_str = payload_str + f', "updates": {get_updates()}' 
@@ -156,6 +159,10 @@ def get_disk_usage(path):
 
 def get_memory_usage():
     return str(psutil.virtual_memory().percent)
+
+
+def get_load(arg):
+    return str(psutil.getloadavg()[arg])
 
 
 def get_cpu_usage():
@@ -231,6 +238,24 @@ def remove_old_topics():
     )
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}CpuUsage/config",
+        payload='',
+        qos=1,
+        retain=False,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}load_1m/config",
+        payload='',
+        qos=1,
+        retain=False,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}load_5m/config",
+        payload='',
+        qos=1,
+        retain=False,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}load_15m/config",
         payload='',
         qos=1,
         retain=False,
@@ -370,7 +395,49 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-    
+
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/load_1m/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Load 1m\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.load_1m}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_load_1m\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:cpu-64-bit\"}}",
+        qos=1,
+        retain=True,
+    ) 
+
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/load_5m/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Load 5m\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.load_5m}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_load_5m\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:cpu-64-bit\"}}",
+        qos=1,
+        retain=True,
+    ) 
+
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/load_15m/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Load 15m\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.load_15m}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_load_15m\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:cpu-64-bit\"}}",
+        qos=1,
+        retain=True,
+    ) 
+
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/swap_usage/config",
         payload=f"{{\"name\":\"{deviceNameDisplay} Swap Usage\","
