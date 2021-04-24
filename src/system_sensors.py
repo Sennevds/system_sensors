@@ -26,6 +26,9 @@ except ImportError:
 UTC = pytz.utc
 DEFAULT_TIME_ZONE = None
 
+old_net_data = psutil.net_io_counters()
+previous_time = time.time()
+
 # Get OS information
 OS_DATA = {}
 with open("/etc/os-release") as f:
@@ -115,7 +118,9 @@ def updateSensors():
         + f'"host_arch": "{get_host_arch()}",'
         + f'"load_1m": "{get_load(0)}",'
         + f'"load_5m": "{get_load(1)}",'
-        + f'"load_15m": "{get_load(2)}"'
+        + f'"load_15m": "{get_load(2)}",'
+        + f'"net_tx": "{get_net_data()[0]}",'
+        + f'"net_rx": "{get_net_data()[1]}"'
     )
     if "check_available_updates" in settings and settings["check_available_updates"] and not apt_disabled:
         payload_str = payload_str + f', "updates": {get_updates()}' 
@@ -163,6 +168,17 @@ def get_memory_usage():
 
 def get_load(arg):
     return str(psutil.getloadavg()[arg])
+
+def get_net_data():
+    global old_net_data
+    global previous_time
+    current_net_data = psutil.net_io_counters()
+    current_time = time.time()
+    net_data = (current_net_data[0] - old_net_data[0]) / (current_time - previous_time) * 8 / 1024
+    net_data = (net_data, (current_net_data[1] - old_net_data[1]) / (current_time - previous_time) * 8 / 1024)
+    previous_time = current_time
+    old_net_data = current_net_data
+    return ['%.2f' % net_data[0], '%.2f' % net_data[1]]
 
 
 def get_cpu_usage():
@@ -256,6 +272,18 @@ def remove_old_topics():
     )
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}load_15m/config",
+        payload='',
+        qos=1,
+        retain=False,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}net_tx/config",
+        payload='',
+        qos=1,
+        retain=False,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}net_rx/config",
         payload='',
         qos=1,
         retain=False,
@@ -437,6 +465,36 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     ) 
+
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/net_tx/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Network Upload\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"Kb/sec",'
+                + '"value_template":"{{value_json.net_tx}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_net_tx\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:server-network\"}}",
+        qos=1,
+        retain=True,
+    )
+
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/net_rx/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Network Download\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"Kb/sec",'
+                + '"value_template":"{{value_json.net_rx}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_net_rx\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:server-network\"}}",
+        qos=1,
+        retain=True,
+    )
 
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/swap_usage/config",
