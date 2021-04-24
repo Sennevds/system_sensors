@@ -26,7 +26,7 @@ It currently logs the following data:
 * Host local IP
 * Host OS distro and version
 * CPU Load (1min, 5min and 15min)
-* Network Download & Upload speed
+* Network Download & Upload throughput
 
 # System Requirements
 
