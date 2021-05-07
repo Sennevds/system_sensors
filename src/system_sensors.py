@@ -16,6 +16,8 @@ import psutil
 import pytz
 import yaml
 import csv
+import glob
+import os
 from pytz import timezone
 
 try:
@@ -120,7 +122,8 @@ def updateSensors():
         + f'"load_5m": "{get_load(1)}",'
         + f'"load_15m": "{get_load(2)}",'
         + f'"net_tx": "{get_net_data()[0]}",'
-        + f'"net_rx": "{get_net_data()[1]}"'
+        + f'"net_rx": "{get_net_data()[1]}",'
+        + f'"lastest_file": "{get_lastest_file(settings["folder"])}"'
     )
     if "check_available_updates" in settings and settings["check_available_updates"] and not apt_disabled:
         payload_str = payload_str + f', "updates": {get_updates()}' 
@@ -160,6 +163,11 @@ def get_temp():
 
 def get_disk_usage(path):
     return str(psutil.disk_usage(path).percent)
+
+def get_lastest_file(path):
+    list_of_files = glob.glob(path + '*') # * means all if need specific format then *.csv
+    latest_file = max(list_of_files, key=os.path.getctime)
+    return str(latest_file)
 
 
 def get_memory_usage():
@@ -390,6 +398,20 @@ def send_config_message(mqttClient):
                 + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
                 + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
                 + f"\"icon\":\"mdi:micro-sd\"}}",
+        qos=1,
+        retain=True,
+    )
+
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/lastest_file/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Latest file\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"value_template":"{{value_json.lastest_file}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_lastest_file\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:file-plus\"}}",
         qos=1,
         retain=True,
     )
