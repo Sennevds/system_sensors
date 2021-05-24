@@ -27,6 +27,7 @@ It currently logs the following data:
 * Host OS distro and version
 * CPU Load (1min, 5min and 15min)
 * Network Download & Upload throughput
+* Retrieve latest file from folder
 
 # System Requirements
 
@@ -53,6 +54,7 @@ You need to have at least __python 3.6__ installed to use System Sensors.
 | check_available_updates | false | false | Check the # of avaiblable updates 
 | check_wifi_strength | false | false | Check the wifi strength 
 | external_drives | false | \ | Declare external drives you want to check disk usage of (see example settings.yaml)
+| folder | false | \ | Full folder path to monitored folder (see example settings.yaml)
 
 6. python3 src/system_sensors.py src/settings.yaml
 7. (optional) create service to autostart the script at boot:
