@@ -8,6 +8,7 @@ client_id: test
 timezone: Europe/Brussels
 update_interval: 60 #Defaults to 60
 check_wifi_strength: true
+check_wifi_ssid: false
 check_available_updates: true
 external_drives:
   Drive1: /boot/
