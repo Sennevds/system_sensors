@@ -308,12 +308,6 @@ def remove_old_topics():
         retain=False,
     )
     mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}WifiSSID/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Updates/config",
         payload='',
         qos=1,
