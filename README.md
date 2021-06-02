@@ -20,6 +20,7 @@ It currently logs the following data:
 * Last message received timestamp
 * Swap usage
 * Wifi signal strength
+* Wifi connected SSID
 * Amount of upgrades pending
 * Disk usage of external drives
 * Hostname
@@ -52,6 +53,7 @@ You need to have at least __python 3.6__ installed to use System Sensors.
 | update_interval | false | 60 | The update interval to send new values to the MQTT broker 
 | check_available_updates | false | false | Check the # of avaiblable updates 
 | check_wifi_strength | false | false | Check the wifi strength 
+| check_wifi_ssid | false | false | Check the wifi connected SSID 
 | external_drives | false | \ | Declare external drives you want to check disk usage of (see example settings.yaml)
 
 6. python3 src/system_sensors.py src/settings.yaml

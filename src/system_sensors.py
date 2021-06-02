@@ -72,7 +72,7 @@ class Job(threading.Thread):
 def write_message_to_console(message):
     print(message)
     sys.stdout.flush()
-    
+
 
 def utc_from_timestamp(timestamp: float) -> dt.datetime:
     """Return a UTC time from a timestamp."""
@@ -123,9 +123,11 @@ def updateSensors():
         + f'"net_rx": "{get_net_data()[1]}"'
     )
     if "check_available_updates" in settings and settings["check_available_updates"] and not apt_disabled:
-        payload_str = payload_str + f', "updates": {get_updates()}' 
+        payload_str = payload_str + f', "updates": {get_updates()}'
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         payload_str = payload_str + f', "wifi_strength": {get_wifi_strength()}'
+    if "check_wifi_ssid" in settings and settings["check_wifi_ssid"]:
+        payload_str = payload_str + f', "wifi_ssid": \"{get_wifi_ssid()}\"'
     if "external_drives" in settings:
         for drive in settings["external_drives"]:
             payload_str = (
@@ -201,6 +203,17 @@ def get_wifi_strength():  # check_output(["/proc/net/wireless", "grep wlan0"])
         wifi_strength_value = "0"
     return (wifi_strength_value)
 
+def get_wifi_ssid():
+    ssid = check_output(
+                              [
+                                  "bash",
+                                  "-c",
+                                  "/usr/sbin/iwgetid -r",
+                              ]
+                          ).decode("utf-8").rstrip()
+    if not ssid:
+        ssid = "UNKNOWN"
+    return (ssid)
 
 def get_rpi_power_status():
     return _underVoltage.get()
@@ -222,13 +235,13 @@ def get_host_ip():
         sock.close()
 
 def get_host_os():
-    try:     
+    try:
         return OS_DATA["PRETTY_NAME"]
     except:
         return "Unknown"
 
-def get_host_arch():    
-    try:     
+def get_host_arch():
+    try:
         return platform.machine()
     except:
         return "Unknown"
@@ -348,7 +361,7 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-    
+
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/disk_use/config",
         payload=f"{{\"name\":\"{deviceNameDisplay} Disk Use\","
@@ -363,7 +376,7 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-    
+
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/memory_use/config",
         payload=f"{{\"name\":\"{deviceNameDisplay} Memory Use\","
@@ -378,7 +391,7 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-    
+
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/cpu_usage/config",
         payload=f"{{\"name\":\"{deviceNameDisplay} Cpu Usage\","
@@ -406,7 +419,7 @@ def send_config_message(mqttClient):
                 + f"\"icon\":\"mdi:cpu-64-bit\"}}",
         qos=1,
         retain=True,
-    ) 
+    )
 
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/load_5m/config",
@@ -420,7 +433,7 @@ def send_config_message(mqttClient):
                 + f"\"icon\":\"mdi:cpu-64-bit\"}}",
         qos=1,
         retain=True,
-    ) 
+    )
 
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/load_15m/config",
@@ -434,7 +447,7 @@ def send_config_message(mqttClient):
                 + f"\"icon\":\"mdi:cpu-64-bit\"}}",
         qos=1,
         retain=True,
-    ) 
+    )
 
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/net_tx/config",
@@ -480,7 +493,7 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-    
+
     mqttClient.publish(
         topic=f"homeassistant/binary_sensor/{deviceName}/power_status/config",
         payload='{"device_class":"problem",'
@@ -495,8 +508,8 @@ def send_config_message(mqttClient):
         qos=1,
         retain=True,
     )
-    
-   
+
+
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceName}/last_boot/config",
         payload='{"device_class":"timestamp",'
@@ -579,7 +592,6 @@ def send_config_message(mqttClient):
     )
 
 
-
     if "check_available_updates" in settings and settings["check_available_updates"]:
         # import apt
         if(apt_disabled):
@@ -598,7 +610,7 @@ def send_config_message(mqttClient):
                 qos=1,
                 retain=True,
             )
-            
+
 
     if "check_wifi_strength" in settings and settings["check_wifi_strength"]:
         mqttClient.publish(
@@ -616,7 +628,24 @@ def send_config_message(mqttClient):
             qos=1,
             retain=True,
         )
-        
+
+
+    if "check_wifi_ssid" in settings and settings["check_wifi_ssid"]:
+        mqttClient.publish(
+            topic=f"homeassistant/sensor/{deviceName}/wifi_ssid/config",
+            payload='{"device_class":"signal_strength",'
+                    + f"\"name\":\"{deviceNameDisplay} Wifi SSID\","
+                    + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                    + '"value_template":"{{value_json.wifi_ssid}}",'
+                    + f"\"unique_id\":\"{deviceName}_sensor_wifi_ssid\","
+                    + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                    + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                    + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                    + f"\"icon\":\"mdi:wifi\"}}",
+            qos=1,
+            retain=True,
+        )
+
     if "external_drives" in settings:
         for drive in settings["external_drives"]:
             mqttClient.publish(
@@ -633,7 +662,7 @@ def send_config_message(mqttClient):
                 qos=1,
                 retain=True,
             )
-            
+
 
     mqttClient.publish(f"system-sensors/sensor/{deviceName}/availability", "online", retain=True)
 
