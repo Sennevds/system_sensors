@@ -302,21 +302,11 @@ def remove_old_topics():
         )
 
 def check_settings(settings):
-    if "mqtt" not in settings:
-        write_message_to_console("Mqtt not defined in settings.yaml! Please check the documentation")
-        sys.exit()
-    if "hostname" not in settings["mqtt"]:
-        write_message_to_console("Hostname not defined in settings.yaml! Please check the documentation")
-        sys.exit()
-    if "timezone" not in settings:
-        write_message_to_console("Timezone not defined in settings.yaml! Please check the documentation")
-        sys.exit()
-    if "deviceName" not in settings:
-        write_message_to_console("deviceName not defined in settings.yaml! Please check the documentation")
-        sys.exit()
-    if "client_id" not in settings:
-        write_message_to_console("client_id not defined in settings.yaml! Please check the documentation")
-        sys.exit()
+    values_to_check = ['mqtt', 'hostname', 'timezone', 'deviceName', 'client_id']
+    for value in values_to_check:
+        if value not in settings:
+            write_message_to_console('{value} not defined in settings.yaml! Please check the documentation')
+            sys.exit()
     if "power_integer_state" in settings:
         write_message_to_console("power_integer_state is deprecated please remove this option power state is now a binary_sensor!")
 
