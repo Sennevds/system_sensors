@@ -261,88 +261,46 @@ def get_host_arch():
         return "Unknown"
 
 def remove_old_topics():
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Temp/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}ClockSpeed/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}DiskUse/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}MemoryUse/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}CpuUsage/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}SwapUsage/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/binary_sensor/{deviceNameDisplay}/{deviceNameDisplay}PowerStatus/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}PowerStatus/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}LastBoot/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}LastMessage/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}WifiStrength/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
-    mqttClient.publish(
-        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Updates/config",
-        payload='',
-        qos=1,
-        retain=False,
-    )
+    sensors = [
+               'temperature', 
+               'clock_speed', 
+               'disk_use', 
+               'memory_use', 
+               'cpu_usage', 
+               'load_1m', 
+               'load_5m', 
+               'load_15m', 
+               'net_tx',  
+               'net_rx', 
+               'swap_usage', 
+               'last_boot', 
+               'hostname', 
+               'host_ip', 
+               'host_os', 
+               'host_arch', 
+               'last_message',
+               'wifi_strength', 
+               'wifi_ssid', 
+               'updates']
+            + [f'DiskUse{drive.lower()}' for drive in settings['external_drives']] if 'external_drives' in settings else []
 
-    if "external_drives" in settings:
-        for drive in settings["external_drives"]:
-            mqttClient.publish(
-                topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}DiskUse{drive}/config",
-                payload='',
-                qos=1,
-                retain=False,
-            )
+    binary_sensors = ['power_status']
 
+    for sensor in sensors:
+        mqttClient.publish(
+            topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}/{sensor}/config",
+            payload='',
+            qos=1,
+            retain=False,
+        )
+
+    for sensor in binary_sensors:
+        mqttClient.publish(
+            topic=f"homeassistant/binary_sensor/{deviceNameDisplay}/{deviceNameDisplay}/{sensor}/config",
+            payload='',
+            qos=1,
+            retain=False,
+        )
 
 def check_settings(settings):
     if "mqtt" not in settings:
@@ -739,14 +697,8 @@ if __name__ == "__main__":
         )  # Username and pass if configured otherwise you should comment out this
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
-    # if "port" in settings["mqtt"]:
-    #     mqttClient.connect(settings["mqtt"]["hostname"], settings["mqtt"]["port"])
-    # else:
-    #     mqttClient.connect(settings["mqtt"]["hostname"], 1883)
     if "port" not in settings["mqtt"]:
         settings["mqtt"]["port"] = 1883
-    # else:
-    #     mqttClient.connect(settings["mqtt"]["hostname"], 1883)
     while True:
         try:
             mqttClient.connect(settings["mqtt"]["hostname"], settings["mqtt"]["port"])
