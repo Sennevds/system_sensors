@@ -16,7 +16,6 @@ import psutil
 import pytz
 import yaml
 import csv
-from pytz import timezone
 
 try:
     import apt
@@ -682,7 +681,7 @@ if __name__ == "__main__":
         # use safe_load instead load
         settings = yaml.safe_load(f)
     check_settings(settings)
-    DEFAULT_TIME_ZONE = timezone(settings["timezone"])
+    DEFAULT_TIME_ZONE = pytz.timezone(settings["timezone"])
     if "update_interval" in settings:
         WAIT_TIME_SECONDS = settings["update_interval"]
     mqttClient = mqtt.Client(client_id=settings["client_id"])
