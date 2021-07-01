@@ -105,6 +105,7 @@ def updateSensors():
     payload_str = (
         '{'
         + f'"temperature": {get_temp()},'
+        + f'"clock_speed": {get_clock_speed()},'
         + f'"disk_use": {get_disk_usage("/")},'
         + f'"memory_use": {get_memory_usage()},'
         + f'"cpu_usage": {get_cpu_usage()},'
@@ -154,11 +155,23 @@ def get_temp():
     temp = "";
     if "rasp" in OS_DATA["ID"]:
         reading = check_output(["vcgencmd", "measure_temp"]).decode("UTF-8")
-        temp = str(findall("\d+\.\d+", reading)[0])
+        temp = str(findall("\d+", reading)[0])
     else:
         reading = check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"]).decode("UTF-8")
-        temp = str(reading[0] + reading[1] + "." + reading[2])
+        temp = str(reading[0] + reading[1] + "." + reading[2]) # why?? need linux system to test
     return temp
+
+# Clock speed method depending on system distro
+def get_clock_speed():
+    clock_speed = "";
+    if "rasp" in OS_DATA["ID"]:
+        reading = check_output(["vcgencmd", "measure_clock","arm"]).decode("UTF-8")
+        clock_speed = str(int(findall("\d+", reading)[1]) / 1000000)
+    else: # need linux system to test
+        # reading = check_output(["cat", "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"]).decode("UTF-8")
+        # clock_speed = str(int(findall("\d+", reading)[0]) / 1000)
+        pass
+    return clock_speed
 
 def get_disk_usage(path):
     return str(psutil.disk_usage(path).percent)
@@ -222,6 +235,7 @@ def get_host_name():
     return socket.gethostname()
 
 def get_host_ip():
+    # why?? how does this work? why not curl ifconfig.me and be done with it?
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect(('8.8.8.8', 80))
@@ -249,6 +263,12 @@ def get_host_arch():
 def remove_old_topics():
     mqttClient.publish(
         topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}Temp/config",
+        payload='',
+        qos=1,
+        retain=False,
+    )
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceNameDisplay}/{deviceNameDisplay}ClockSpeed/config",
         payload='',
         qos=1,
         retain=False,
@@ -354,6 +374,21 @@ def send_config_message(mqttClient):
                 + '"unit_of_measurement":"°C",'
                 + '"value_template":"{{value_json.temperature}}",'
                 + f"\"unique_id\":\"{deviceName}_sensor_temperature\","
+                + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
+                + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
+                + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
+                + f"\"icon\":\"mdi:thermometer\"}}",
+        qos=1,
+        retain=True,
+    )
+
+    mqttClient.publish(
+        topic=f"homeassistant/sensor/{deviceName}/clock_speed/config",
+        payload=f"{{\"name\":\"{deviceNameDisplay} Clock Speed\","
+                + f"\"state_topic\":\"system-sensors/sensor/{deviceName}/state\","
+                + '"unit_of_measurement":"MHz",'
+                + '"value_template":"{{value_json.clock_speed}}",'
+                + f"\"unique_id\":\"{deviceName}_sensor_clock_speed\","
                 + f"\"availability_topic\":\"system-sensors/sensor/{deviceName}/availability\","
                 + f"\"device\":{{\"identifiers\":[\"{deviceName}_sensor\"],"
                 + f"\"name\":\"{deviceNameDisplay} Sensors\",\"model\":\"RPI {deviceNameDisplay}\", \"manufacturer\":\"RPI\"}},"
@@ -704,10 +739,20 @@ if __name__ == "__main__":
         )  # Username and pass if configured otherwise you should comment out this
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
-    if "port" in settings["mqtt"]:
-        mqttClient.connect(settings["mqtt"]["hostname"], settings["mqtt"]["port"])
-    else:
-        mqttClient.connect(settings["mqtt"]["hostname"], 1883)
+    # if "port" in settings["mqtt"]:
+    #     mqttClient.connect(settings["mqtt"]["hostname"], settings["mqtt"]["port"])
+    # else:
+    #     mqttClient.connect(settings["mqtt"]["hostname"], 1883)
+    if "port" not in settings["mqtt"]:
+        settings["mqtt"]["port"] = 1883
+    # else:
+    #     mqttClient.connect(settings["mqtt"]["hostname"], 1883)
+    while True:
+        try:
+            mqttClient.connect(settings["mqtt"]["hostname"], settings["mqtt"]["port"])
+            break
+        except ConnectionRefusedError:
+            time.sleep(120)
     try:
         remove_old_topics()
         send_config_message(mqttClient)
