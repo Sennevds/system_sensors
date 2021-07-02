@@ -13,6 +13,7 @@ I’ve created a simple python script that runs every 60 seconds and sends sever
 It currently logs the following data:
 * CPU usage
 * CPU temperature
+* CPU Clock Speed
 * Disk usage
 * Memory usage
 * Power status of the RPI
