@@ -9,7 +9,12 @@ import socket
 import platform
 import datetime as dt
 from subprocess import check_output
-from rpi_bad_power import new_under_voltage
+
+try:
+    from rpi_bad_power import new_under_voltage
+    rpi_power_disabled = False
+except ImportError:
+    rpi_power_disabled = True
 
 try:
     import apt
@@ -31,7 +36,8 @@ previous_time = time.time() - 10
 UTC = pytz.utc
 DEFAULT_TIME_ZONE = None
 
-_underVoltage = new_under_voltage()
+if not rpi_power_disabled:
+    _underVoltage = new_under_voltage()
 
 def as_local(dattim: dt.datetime) -> dt.datetime:
     """Convert a UTC datetime object to local time zone."""
@@ -268,22 +274,19 @@ sensors = {
                  'sensor_type': 'sensor',
                  'function': get_last_message},
           'updates': 
-                {'settings': 'check_available_updates',
-                 'name':'Updates',
+                {'name':'Updates',
                  'icon': 'cellphone-arrow-down',
                  'sensor_type': 'sensor',
                  'function': get_updates},
           'wifi_strength': 
-                {'settings': 'check_wifi_strength',
-                 'class': 'signal_strength',
+                {'class': 'signal_strength',
                  'name':'Wifi Strength',
                  'unit': 'dBm',
                  'icon': 'wifi',
                  'sensor_type': 'sensor',
                  'function': get_wifi_strength},
           'wifi_ssid': 
-                {'settings': 'check_wifi_ssid',
-                 'class': 'signal_strength',
+                {'class': 'signal_strength',
                  'name':'Wifi SSID',
                  'icon': 'wifi',
                  'sensor_type': 'sensor',

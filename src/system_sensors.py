@@ -12,8 +12,9 @@ from sensors import *
 
 
 mqttClient = None
-WAIT_TIME_SECONDS = 60
+poll_interval = 60
 deviceName = None
+settings = {}
 
 class ProgramKilled(Exception):
     pass
@@ -43,10 +44,10 @@ def write_message_to_console(message):
     print(message)
     sys.stdout.flush()
 
-def updateSensors():
+def update_sensors():
     payload_str = f'{{'
     for sensor, attr in sensors.items():
-        if 'settings' in attr and settings[attr['settings']] == False:
+        if settings['sensors'][sensor] == False:
             continue
         payload_str += f'"{sensor}": "{attr["function"]()}",'
     payload_str = payload_str[:-1]
@@ -75,7 +76,7 @@ def send_config_message(mqttClient):
     write_message_to_console('send config message')     
 
     for sensor, attr in sensors.items():
-        if 'settings' in attr and settings[attr['settings']] == False:
+        if settings['sensors'][sensor] == False:
             continue
         mqttClient.publish(
             topic=f'homeassistant/sensor/{deviceName}/{sensor}/config',
@@ -106,17 +107,16 @@ def _parser():
 
 def set_defaults(settings):
     DEFAULT_TIME_ZONE = pytz.timezone(settings['timezone'])
-    WAIT_TIME_SECONDS = settings['update_interval'] if 'update_interval' in settings else 60
+    poll_interval = settings['update_interval'] if 'update_interval' in settings else 60
     if 'port' not in settings['mqtt']:
         settings['mqtt']['port'] = 1883
-    if 'check_available_updates' not in settings:
-        settings['check_available_updates'] = False
-    if 'check_wifi_ssid' not in settings:
-        settings['check_wifi_ssid'] = False
-    if 'check_wifi_strength' not in settings:
-        settings['check_wifi_strength'] = False
-    if 'external_drives' not in settings:
-        settings['external_drives'] = {}
+    if 'sensors' not in settings:
+        settings['sensors'] = {}
+    for sensor in sensors:
+        if sensor not in settings['sensors']:
+            settings['sensors'][sensor] = True
+    if 'external_drives' not in settings['sensors']:
+        settings['sensors']['external_drives'] = {}
 
 def check_settings(settings):
     values_to_check = ['mqtt', 'timezone', 'deviceName', 'client_id']
@@ -130,14 +130,18 @@ def check_settings(settings):
     if 'user' in settings['mqtt'] and 'password' not in settings['mqtt']:
         write_message_to_console('password not defined in settings.yaml! Please check the documentation')
         sys.exit()
-    if 'check_available_updates' in settings and apt_disabled:
+    if 'power_status' in settings['sensors'] and rpi_power_disabled:
         write_message_to_console('Unable to import apt package. Available updates will not be shown.')
-        settings['check_available_updates'] = False
+        settings['sensors']['updates'] = False
+    if 'updates' in settings['sensors'] and apt_disabled:
+        write_message_to_console('Unable to import apt package. Available updates will not be shown.')
+        settings['sensors']['updates'] = False
     if 'power_integer_state' in settings:
         write_message_to_console('power_integer_state is deprecated please remove this option power state is now a binary_sensor!')
 
 def add_drives():
-    for drive in settings['external_drives']:
+    for drive in settings['sensors']['external_drives']:
+        # check if drives exist?
         sensors[f'disk_use_{drive.lower()}'] = {
                      'name': f'Disk Use {drive}',
                      'unit': '%',
@@ -195,7 +199,7 @@ if __name__ == '__main__':
         send_config_message(mqttClient)
     except:
         write_message_to_console('something whent wrong') # say what went wrong
-    job = Job(interval=dt.timedelta(seconds=WAIT_TIME_SECONDS), execute=updateSensors)
+    job = Job(interval=dt.timedelta(seconds=poll_interval), execute=update_sensors)
     job.start()
 
     mqttClient.loop_start()
