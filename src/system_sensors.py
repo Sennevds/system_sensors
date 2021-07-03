@@ -132,7 +132,7 @@ def check_settings(settings):
         sys.exit()
     if 'power_status' in settings['sensors'] and rpi_power_disabled:
         write_message_to_console('Unable to import apt package. Available updates will not be shown.')
-        settings['sensors']['updates'] = False
+        settings['sensors']['power_status'] = False
     if 'updates' in settings['sensors'] and apt_disabled:
         write_message_to_console('Unable to import apt package. Available updates will not be shown.')
         settings['sensors']['updates'] = False
