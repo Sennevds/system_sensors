@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import csv
 import time
 import pytz
 import psutil
@@ -26,10 +25,11 @@ except ImportError:
 # Get OS information
 OS_DATA = {}
 with open('/etc/os-release') as f:
-    reader = csv.reader(f, delimiter='=')
-    for row in reader:
-        if row:
-            OS_DATA[row[0]] = row[1]
+    for line in f.readlines():
+        row = line.strip().split("=")
+        for row in reader:
+            if row:
+                OS_DATA[row[0]] = row[1]
 
 old_net_data = psutil.net_io_counters()
 previous_time = time.time() - 10
