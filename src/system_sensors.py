@@ -47,13 +47,12 @@ def write_message_to_console(message):
 def update_sensors():
     payload_str = f'{{'
     for sensor, attr in sensors.items():
+        # skip sensors that have been disabled
         if settings['sensors'][sensor] == False:
             continue
         payload_str += f'"{sensor}": "{attr["function"]()}",'
     payload_str = payload_str[:-1]
     payload_str += f'}}'
-    print(f'system-sensors/sensor/{deviceName}/state')
-    print(payload_str)
     mqttClient.publish(
         topic=f'system-sensors/sensor/{deviceName}/state',
         payload=payload_str,
@@ -63,7 +62,6 @@ def update_sensors():
 
 def remove_old_topics():
     for sensor, attr in sensors.items():
-        print(f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config')
         mqttClient.publish(
             topic=f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config',
             payload='',
@@ -168,6 +166,8 @@ if __name__ == '__main__':
     args = _parser().parse_args()
     with open(args.settings) as f:
         settings = yaml.safe_load(f)
+
+    # are these arguments necessary?
     set_defaults(settings)
     check_settings(settings)
     
@@ -193,7 +193,15 @@ if __name__ == '__main__':
             mqttClient.connect(settings['mqtt']['hostname'], settings['mqtt']['port'])
             break
         except ConnectionRefusedError:
+            # sleep for 2 minutes if broker is unavailable and retry. 
+            # Make this value configurable?
+            # this feels like a dirty hack. Is there some other way to do this?
             time.sleep(120)
+        except OSError:
+            # sleep for 10 minutes if broker is not reachable, i.e. network is down 
+            # Make this value configurable?
+            # this feels like a dirty hack. Is there some other way to do this?
+            time.sleep(600)
     try:
         remove_old_topics() # why are we doing this??
         send_config_message(mqttClient)
