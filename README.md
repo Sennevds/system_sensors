@@ -1,5 +1,5 @@
 # RPI System sensors
-[![GitHub Release][releases-shield]][releases]
+[![Community Forum][forum-shield]][forum]
 [![License][license-shield]](LICENSE.md)
 
 This is a fork of [Sennevds/system_sensors](https://github.com/Sennevds/system_sensors). Aside from a few qol changes, there is functionally no big difference between this fork and the original.
