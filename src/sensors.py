@@ -26,7 +26,7 @@ except ImportError:
 OS_DATA = {}
 with open('/etc/os-release') as f:
     for line in f.readlines():
-        row = line.strip().split("=")
+        row = line.strip().strip('"').split("=")
         OS_DATA[row[0]] = row[1]
 
 old_net_data = psutil.net_io_counters()
