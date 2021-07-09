@@ -128,13 +128,16 @@ def get_wifi_strength():  # check_output(['/proc/net/wireless', 'grep wlan0'])
     return (wifi_strength_value)
 
 def get_wifi_ssid():
-    ssid = check_output(
-                              [
-                                  'bash',
-                                  '-c',
-                                  '/usr/sbin/iwgetid -r',
-                              ]
-                          ).decode('utf-8').rstrip()
+    try:
+        ssid = check_output(
+                                  [
+                                      'bash',
+                                      '-c',
+                                      '/usr/sbin/iwgetid -r',
+                                  ]
+                              ).decode('utf-8').rstrip()
+    except subprocess.CalledProcessError:
+        ssid = 'UNKNOWN'
     if not ssid:
         ssid = 'UNKNOWN'
     return (ssid)
