@@ -6,8 +6,8 @@ import pytz
 import psutil
 import socket
 import platform
+import subprocess
 import datetime as dt
-from subprocess import check_output
 
 try:
     from rpi_bad_power import new_under_voltage
@@ -66,10 +66,10 @@ def get_updates():
 def get_temp():
     temp = '';
     if 'rasp' in OS_DATA['ID']:
-        reading = check_output(['vcgencmd', 'measure_temp']).decode('UTF-8')
+        reading = subprocess.check_output(['vcgencmd', 'measure_temp']).decode('UTF-8')
         temp = str(re.findall('\d+.\d+', reading)[0])
     else:
-        reading = check_output(['cat', '/sys/class/thermal/thermal_zone0/temp']).decode('UTF-8')
+        reading = subprocess.check_output(['cat', '/sys/class/thermal/thermal_zone0/temp']).decode('UTF-8')
         temp = str(reading[0] + reading[1] + '.' + reading[2]) # why?? need linux system to test
     return temp
 
@@ -77,10 +77,10 @@ def get_temp():
 def get_clock_speed():
     clock_speed = '';
     if 'rasp' in OS_DATA['ID']:
-        reading = check_output(['vcgencmd', 'measure_clock','arm']).decode('UTF-8')
+        reading = subprocess.check_output(['vcgencmd', 'measure_clock','arm']).decode('UTF-8')
         clock_speed = str(int(re.findall('\d+', reading)[1]) / 1000000)
     else: # need linux system to test
-        reading = check_output(['cat', '/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq']).decode('UTF-8')
+        reading = subprocess.check_output(['cat', '/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq']).decode('UTF-8')
         clock_speed = str(int(findall('\d+', reading)[0]) / 1000)
     return clock_speed
 
@@ -115,8 +115,8 @@ def get_cpu_usage():
 def get_swap_usage():
     return str(psutil.swap_memory().percent)
 
-def get_wifi_strength():  # check_output(['/proc/net/wireless', 'grep wlan0'])
-    wifi_strength_value = check_output(
+def get_wifi_strength():  # subprocess.check_output(['/proc/net/wireless', 'grep wlan0'])
+    wifi_strength_value = subprocess.check_output(
                               [
                                   'bash',
                                   '-c',
@@ -129,7 +129,7 @@ def get_wifi_strength():  # check_output(['/proc/net/wireless', 'grep wlan0'])
 
 def get_wifi_ssid():
     try:
-        ssid = check_output(
+        ssid = subprocess.check_output(
                                   [
                                       'bash',
                                       '-c',
