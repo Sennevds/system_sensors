@@ -96,7 +96,7 @@ def get_last_message():
 
 
 def on_message(client, userdata, message):
-    print (f"Message received: {message.payload.decode()}"  )
+    printf("Message received: {message.payload.decode()}"  )
     if(message.payload.decode() == "online"):
         send_config_message(client)
 
