@@ -54,7 +54,7 @@ def update_sensors():
     payload_str = payload_str[:-1]
     payload_str += f'}}'
     mqttClient.publish(
-        topic=f'system-sensors/sensor/{deviceName}/state',
+        topic=f'system-sensors/{attr["sensor_type"]}/{deviceName}/state',
         payload=payload_str,
         qos=1,
         retain=False,
