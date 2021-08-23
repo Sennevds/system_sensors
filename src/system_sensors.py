@@ -77,7 +77,7 @@ def send_config_message(mqttClient):
         if settings['sensors'][sensor] == False:
             continue
         mqttClient.publish(
-            topic=f'homeassistant/sensor/{deviceName}/{sensor}/config',
+            topic=f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config',
             payload = (f'{{'
                     + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
                     + f'"name":"{deviceNameDisplay} {attr["name"]}",'
