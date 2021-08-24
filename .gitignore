@@ -100,6 +100,9 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# Sublime Text files
+*.sublime-*
+
 # Rope project settings
 .ropeproject
 
@@ -109,3 +112,4 @@ venv.bak/
 # mypy
 .mypy_cache/
 /src/settings.yaml
+system_sensors.service

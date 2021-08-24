@@ -13,6 +13,7 @@ I’ve created a simple python script that runs every 60 seconds and sends sever
 It currently logs the following data:
 * CPU usage
 * CPU temperature
+* CPU Clock Speed
 * Disk usage
 * Memory usage
 * Power status of the RPI
@@ -42,19 +43,17 @@ You need to have at least __python 3.6__ installed to use System Sensors.
 
 | Value  | Required | Default | Description | 
 | ------------- | ------------- | ------------- | ------------- |
-| hostname  | true | \ | Hostname of the MQTT broker
-| port  | false | 1883 | Port of the MQTT broker
-| user | false | \ | The userlogin( if defined) for the MQTT broker
-| password | false | \ | the password ( if defined) for the MQTT broker
+| mqtt  | true | \ | Details of the MQTT broker
+| mqtt:hostname  | true | \ | Hostname of the MQTT broker
+| mqtt:port  | false | 1883 | Port of the MQTT broker
+| mqtt:user | false | \ | The userlogin( if defined) for the MQTT broker
+| mqtt:password | false | \ | the password ( if defined) for the MQTT broker
 | deviceName | true | \ | device name is sent with topic
 | client_id | true | \ | client id to connect to the MQTT broker
 | timezone | true | \ | Your local timezone (you can find the list of timezones here: [time zones](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568))
 | power_integer_state(Deprecated) | false | false | Deprecated
 | update_interval | false | 60 | The update interval to send new values to the MQTT broker 
-| check_available_updates | false | false | Check the # of avaiblable updates 
-| check_wifi_strength | false | false | Check the wifi strength 
-| check_wifi_ssid | false | false | Check the wifi connected SSID 
-| external_drives | false | \ | Declare external drives you want to check disk usage of (see example settings.yaml)
+| sensors | false | \ | Enable/disable individual sensors (see example settings.yaml for how-to). Default is true for all sensors.
 
 6. python3 src/system_sensors.py src/settings.yaml
 7. (optional) create service to autostart the script at boot:
