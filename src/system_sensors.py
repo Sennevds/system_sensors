@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from os import error
 import sys
 import time
 import yaml
@@ -12,7 +13,7 @@ from sensors import *
 
 
 mqttClient = None
-poll_interval = 60
+global poll_interval
 deviceName = None
 settings = {}
 
@@ -40,9 +41,7 @@ class Job(threading.Thread):
         while not self.stopped.wait(self.interval.total_seconds()):
             self.execute(*self.args, **self.kwargs)
 
-def write_message_to_console(message):
-    print(message)
-    sys.stdout.flush()
+
 
 def update_sensors():
     payload_str = f'{{'
@@ -59,15 +58,6 @@ def update_sensors():
         qos=1,
         retain=False,
     )
-
-def remove_old_topics():
-    for sensor, attr in sensors.items():
-        mqttClient.publish(
-            topic=f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config',
-            payload='',
-            qos=1,
-            retain=False,
-        )
 
 def send_config_message(mqttClient):
 
@@ -104,7 +94,8 @@ def _parser():
     return parser
 
 def set_defaults(settings):
-    DEFAULT_TIME_ZONE = pytz.timezone(settings['timezone'])
+    global poll_interval
+    set_default_timezone(pytz.timezone(settings['timezone']))
     poll_interval = settings['update_interval'] if 'update_interval' in settings else 60
     if 'port' not in settings['mqtt']:
         settings['mqtt']['port'] = 1883
@@ -203,10 +194,10 @@ if __name__ == '__main__':
             # this feels like a dirty hack. Is there some other way to do this?
             time.sleep(600)
     try:
-        remove_old_topics() # why are we doing this??
         send_config_message(mqttClient)
+        update_sensors()
     except:
-        write_message_to_console('something whent wrong') # say what went wrong
+        write_message_to_console(f'something whent wrong') # say what went wrong
     job = Job(interval=dt.timedelta(seconds=poll_interval), execute=update_sensors)
     job.start()
 

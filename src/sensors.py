@@ -8,6 +8,7 @@ import socket
 import platform
 import subprocess
 import datetime as dt
+import sys
 
 try:
     from rpi_bad_power import new_under_voltage
@@ -37,7 +38,17 @@ DEFAULT_TIME_ZONE = None
 if not rpi_power_disabled:
     _underVoltage = new_under_voltage()
 
+def set_default_timezone(timezone):
+    global DEFAULT_TIME_ZONE
+    DEFAULT_TIME_ZONE = timezone
+
+
+def write_message_to_console(message):
+    print(message)
+    sys.stdout.flush()
+
 def as_local(dattim: dt.datetime) -> dt.datetime:
+    global DEFAULT_TIME_ZONE
     """Convert a UTC datetime object to local time zone."""
     if dattim.tzinfo == DEFAULT_TIME_ZONE:
         return dattim
@@ -64,7 +75,7 @@ def get_updates():
 
 # Temperature method depending on system distro
 def get_temp():
-    temp = '';
+    temp = ''
     if 'rasp' in OS_DATA['ID']:
         reading = subprocess.check_output(['vcgencmd', 'measure_temp']).decode('UTF-8')
         temp = str(re.findall('\d+.\d+', reading)[0])
@@ -75,13 +86,13 @@ def get_temp():
 
 # Clock speed method depending on system distro
 def get_clock_speed():
-    clock_speed = '';
+    clock_speed = ''
     if 'rasp' in OS_DATA['ID']:
         reading = subprocess.check_output(['vcgencmd', 'measure_clock','arm']).decode('UTF-8')
         clock_speed = str(int(re.findall('\d+', reading)[1]) / 1000000)
     else: # need linux system to test
         reading = subprocess.check_output(['cat', '/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq']).decode('UTF-8')
-        clock_speed = str(int(findall('\d+', reading)[0]) / 1000)
+        clock_speed = str(int(re.findall('\d+', reading)[0]) / 1000)
     return clock_speed
 
 def get_disk_usage(path):

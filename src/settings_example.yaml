@@ -8,8 +8,26 @@ client_id: test
 timezone: Europe/Brussels
 update_interval: 60 #Defaults to 60
 sensors:
+  temperature: true
+  clock_speed: true
+  disk_use: true
+  memory_use: true
+  cpu_usage: true
+  load_1m: true
+  load_5m: true
+  load_15m: true
+  net_tx: true
+  net_rx: true
+  swap_usage: true
+  power_status: true
+  last_boot: true
+  hostname: true
+  host_ip: true
+  host_os: true
+  host_arch: true
+  last_message: true
+  updates: true
   wifi_strength: true
-  wifi_ssid: false
-  available_updates: true
+  wifi_ssid: true
   external_drives:
     Drive1: /boot/
