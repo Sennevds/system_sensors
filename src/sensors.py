@@ -10,11 +10,15 @@ import subprocess
 import datetime as dt
 import sys
 
+
+rpi_power_disabled = True
 try:
     from rpi_bad_power import new_under_voltage
-    rpi_power_disabled = False
+    if new_under_voltage() is not None:
+        # Only enable if import works and function returns a value
+        rpi_power_disabled = False
 except ImportError:
-    rpi_power_disabled = True
+    pass
 
 try:
     import apt
@@ -96,7 +100,13 @@ def get_clock_speed():
     return clock_speed
 
 def get_disk_usage(path):
-    return str(psutil.disk_usage(path).percent)
+    try:
+        disk_percentage = str(psutil.disk_usage(path).percent)
+    except Exception as e:
+        print('Error while trying to obtain disk usage from ' + str(path) + ' with exception: ' + str(e))
+        raise
+
+    return disk_percentage
 
 
 def get_memory_usage():

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-from os import error
+from os import error, path
 import sys
 import time
 import yaml
 import signal
+import pathlib
 import argparse
 import threading
 import paho.mqtt.client as mqtt
@@ -61,36 +62,39 @@ def update_sensors():
 
 def send_config_message(mqttClient):
 
-    write_message_to_console('send config message')     
+    write_message_to_console('Sending config message to host...')     
 
     for sensor, attr in sensors.items():
-        if settings['sensors'][sensor] == False:
-            continue
-        mqttClient.publish(
-            topic=f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config',
-            payload = (f'{{'
-                    + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
-                    + f'"name":"{deviceNameDisplay} {attr["name"]}",'
-                    + f'"state_topic":"system-sensors/sensor/{deviceName}/state",'
-                    + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
-                    + f'"value_template":"{{{{value_json.{sensor}}}}}",'
-                    + f'"unique_id":"{deviceName}_sensor_{sensor}",'
-                    + f'"availability_topic":"system-sensors/sensor/{deviceName}/availability",'
-                    + f'"device":{{"identifiers":["{deviceName}_sensor"],'
-                    + f'"name":"{deviceNameDisplay} Sensors","model":"RPI {deviceNameDisplay}", "manufacturer":"RPI"}}'
-                    + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
-                    + f'}}'
-                    ),
-            qos=1,
-            retain=True,
-        )
+        try:
+            if settings['sensors'][sensor]:
+                mqttClient.publish(
+                    topic=f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config',
+                    payload = (f'{{'
+                            + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
+                            + f'"name":"{deviceNameDisplay} {attr["name"]}",'
+                            + f'"state_topic":"system-sensors/sensor/{deviceName}/state",'
+                            + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
+                            + f'"value_template":"{{{{value_json.{sensor}}}}}",'
+                            + f'"unique_id":"{deviceName}_sensor_{sensor}",'
+                            + f'"availability_topic":"system-sensors/sensor/{deviceName}/availability",'
+                            + f'"device":{{"identifiers":["{deviceName}_sensor"],'
+                            + f'"name":"{deviceNameDisplay} Sensors","model":"RPI {deviceNameDisplay}", "manufacturer":"RPI"}}'
+                            + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
+                            + f'}}'
+                            ),
+                    qos=1,
+                    retain=True,
+                )
+        except Exception as e:
+            print('An error was produced while processing ' + str(sensor) + ' with exception: ' + str(e))
+            raise
 
     mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'online', retain=True)
 
 def _parser():
     """Generate argument parser"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('settings', help='path to the settings file')
+    parser.add_argument('settings', help='path to the settings file')   
     return parser
 
 def set_defaults(settings):
@@ -107,6 +111,9 @@ def set_defaults(settings):
     if 'external_drives' not in settings['sensors']:
         settings['sensors']['external_drives'] = {}
 
+    # 'settings' argument is local, so this updated version needs to be returned to overwrite the one in the main function
+    return settings
+
 def check_settings(settings):
     values_to_check = ['mqtt', 'timezone', 'deviceName', 'client_id']
     for value in values_to_check:
@@ -120,7 +127,7 @@ def check_settings(settings):
         write_message_to_console('password not defined in settings.yaml! Please check the documentation')
         sys.exit()
     if 'power_status' in settings['sensors'] and rpi_power_disabled:
-        write_message_to_console('Unable to import rpi_bad_power library. Power supply info will not be shown.')
+        write_message_to_console('Unable to import rpi_bad_power library, or is incompatible on host architecture. Power supply info will not be shown.')
         settings['sensors']['power_status'] = False
     if 'updates' in settings['sensors'] and apt_disabled:
         write_message_to_console('Unable to import apt package. Available updates will not be shown.')
@@ -153,13 +160,26 @@ def on_message(client, userdata, message):
     if(message.payload.decode() == 'online'):
         send_config_message(client)
 
+
 if __name__ == '__main__':
-    args = _parser().parse_args()
-    with open(args.settings) as f:
+    try:
+        args = _parser().parse_args()
+        settings_file = args.settings
+    except:
+        print('Attempting to find settings file in same folder as ' + str(__file__))
+        default_settings_path = str(pathlib.Path(__file__).parent.resolve()) + '/settings.yaml'
+        if path.isfile(default_settings_path):
+            print('Settings file found, attempting to continue...')
+            settings_file = default_settings_path
+        else:
+            print('Could not find settings.yaml. Please check the documentation')
+            exit()
+
+    with open(settings_file) as f:
         settings = yaml.safe_load(f)
 
     # are these arguments necessary?
-    set_defaults(settings)
+    settings = set_defaults(settings)
     check_settings(settings)
     
     add_drives()
@@ -195,9 +215,15 @@ if __name__ == '__main__':
             time.sleep(600)
     try:
         send_config_message(mqttClient)
+    except Exception as e:
+        write_message_to_console('Error while attempting to send config to MQTT host: ' + str(e))
+        exit()
+    try:    
         update_sensors()
-    except:
-        write_message_to_console(f'something whent wrong') # say what went wrong
+    except Exception as e:
+        write_message_to_console('Error while attempting to perform inital sensor update: ' + str(e))
+        exit()
+
     job = Job(interval=dt.timedelta(seconds=poll_interval), execute=update_sensors)
     job.start()
 
