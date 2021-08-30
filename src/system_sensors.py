@@ -136,7 +136,8 @@ def check_settings(settings):
         write_message_to_console('power_integer_state is deprecated please remove this option power state is now a binary_sensor!')
 
 def add_drives():
-    if (drives := settings['sensors']['external_drives']) is not None:
+    drives = settings['sensors']['external_drives']
+    if drives is not None:
         for drive in drives:
             # check if drives exist?
             sensors[f'disk_use_{drive.lower()}'] = {
