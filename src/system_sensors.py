@@ -15,7 +15,7 @@ from sensors import *
 
 mqttClient = None
 global poll_interval
-deviceName = None
+devicename = None
 settings = {}
 
 class ProgramKilled(Exception):
@@ -54,7 +54,7 @@ def update_sensors():
     payload_str = payload_str[:-1]
     payload_str += f'}}'
     mqttClient.publish(
-        topic=f'system-sensors/{attr["sensor_type"]}/{deviceName}/state',
+        topic=f'system-sensors/{attr["sensor_type"]}/{devicename}/state',
         payload=payload_str,
         qos=1,
         retain=False,
@@ -68,16 +68,16 @@ def send_config_message(mqttClient):
         try:
             if settings['sensors'][sensor]:
                 mqttClient.publish(
-                    topic=f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config',
+                    topic=f'homeassistant/{attr["sensor_type"]}/{devicename}/{sensor}/config',
                     payload = (f'{{'
                             + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
                             + f'"name":"{deviceNameDisplay} {attr["name"]}",'
-                            + f'"state_topic":"system-sensors/sensor/{deviceName}/state",'
+                            + f'"state_topic":"system-sensors/sensor/{devicename}/state",'
                             + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
                             + f'"value_template":"{{{{value_json.{sensor}}}}}",'
-                            + f'"unique_id":"{deviceName}_sensor_{sensor}",'
-                            + f'"availability_topic":"system-sensors/sensor/{deviceName}/availability",'
-                            + f'"device":{{"identifiers":["{deviceName}_sensor"],'
+                            + f'"unique_id":"{devicename}_sensor_{sensor}",'
+                            + f'"availability_topic":"system-sensors/sensor/{devicename}/availability",'
+                            + f'"device":{{"identifiers":["{devicename}_sensor"],'
                             + f'"name":"{deviceNameDisplay} Sensors","model":"RPI {deviceNameDisplay}", "manufacturer":"RPI"}}'
                             + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
                             + f'}}'
@@ -89,7 +89,7 @@ def send_config_message(mqttClient):
             print('An error was produced while processing ' + str(sensor) + ' with exception: ' + str(e))
             raise
 
-    mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'online', retain=True)
+    mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
 
 def _parser():
     """Generate argument parser"""
@@ -108,17 +108,17 @@ def set_defaults(settings):
     for sensor in sensors:
         if sensor not in settings['sensors']:
             settings['sensors'][sensor] = True
-    if 'external_drives' not in settings['sensors']:
+    if 'external_drives' not in settings['sensors'] or settings['sensors']['external_drives'] is None:
         settings['sensors']['external_drives'] = {}
 
     # 'settings' argument is local, so this updated version needs to be returned to overwrite the one in the main function
     return settings
 
 def check_settings(settings):
-    values_to_check = ['mqtt', 'timezone', 'deviceName', 'client_id']
+    values_to_check = ['mqtt', 'timezone', 'devicename', 'client_id']
     for value in values_to_check:
         if value not in settings:
-            write_message_to_console('{value} not defined in settings.yaml! Please check the documentation')
+            write_message_to_console(value + ' not defined in settings.yaml! Please check the documentation')
             sys.exit()
     if 'hostname' not in settings['mqtt']:
         write_message_to_console('hostname not defined in settings.yaml! Please check the documentation')
@@ -150,7 +150,7 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         write_message_to_console('Connected to broker')
         client.subscribe('hass/status')
-        mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'online', retain=True)
+        mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
     elif rc == 5:
         write_message_to_console('Authentication failed.\n Exiting.')
         sys.exit()
@@ -180,19 +180,22 @@ if __name__ == '__main__':
     with open(settings_file) as f:
         settings = yaml.safe_load(f)
 
-    # are these arguments necessary?
+    # Make settings file keys all lowercase
+    settings = {k.lower(): v for k,v in settings.items()}
+    # Prep settings with defaults if keys missing
     settings = set_defaults(settings)
+    # Check for settings that will prevent the script from communicating with MQTT broker or break the script
     check_settings(settings)
     
     add_drives()
 
-    deviceName = settings['deviceName'].replace(' ', '').lower()
-    deviceNameDisplay = settings['deviceName']
+    devicename = settings['devicename'].replace(' ', '').lower()
+    deviceNameDisplay = settings['devicename']
 
     mqttClient = mqtt.Client(client_id=settings['client_id'])
     mqttClient.on_connect = on_connect                      #attach function to callback
     mqttClient.on_message = on_message
-    mqttClient.will_set(f'system-sensors/sensor/{deviceName}/availability', 'offline', retain=True)
+    mqttClient.will_set(f'system-sensors/sensor/{devicename}/availability', 'offline', retain=True)
     if 'user' in settings['mqtt']:
         mqttClient.username_pw_set(
             settings['mqtt']['user'], settings['mqtt']['password']
@@ -237,7 +240,7 @@ if __name__ == '__main__':
             time.sleep(1)
         except ProgramKilled:
             write_message_to_console('Program killed: running cleanup code')
-            mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'offline', retain=True)
+            mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'offline', retain=True)
             mqttClient.disconnect()
             mqttClient.loop_stop()
             sys.stdout.flush()
