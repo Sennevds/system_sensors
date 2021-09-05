@@ -93,7 +93,7 @@ def get_temp():
         except Exception as e:
             print('Could not establish CPU temperature reading: ' + str(e))
             raise
-    return temp
+    return round(temp, 1)
 
             # Option to use thermal_zone readings instead of psutil
 

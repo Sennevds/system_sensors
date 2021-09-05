@@ -86,7 +86,7 @@ def send_config_message(mqttClient):
                     retain=True,
                 )
         except Exception as e:
-            print('An error was produced while processing ' + str(sensor) + ' with exception: ' + str(e))
+            write_message_to_console('An error was produced while processing ' + str(sensor) + ' with exception: ' + str(e))
             raise
 
     mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
@@ -168,13 +168,13 @@ if __name__ == '__main__':
         args = _parser().parse_args()
         settings_file = args.settings
     except:
-        print('Attempting to find settings file in same folder as ' + str(__file__))
+        write_message_to_console('Attempting to find settings file in same folder as ' + str(__file__))
         default_settings_path = str(pathlib.Path(__file__).parent.resolve()) + '/settings.yaml'
         if path.isfile(default_settings_path):
-            print('Settings file found, attempting to continue...')
+            write_message_to_console('Settings file found, attempting to continue...')
             settings_file = default_settings_path
         else:
-            print('Could not find settings.yaml. Please check the documentation')
+            write_message_to_console('Could not find settings.yaml. Please check the documentation')
             exit()
 
     with open(settings_file) as f:
