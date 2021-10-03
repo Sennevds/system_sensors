@@ -49,7 +49,6 @@ def set_default_timezone(timezone):
     global DEFAULT_TIME_ZONE
     DEFAULT_TIME_ZONE = timezone
 
-
 def write_message_to_console(message):
     print(message)
     sys.stdout.flush()
@@ -118,16 +117,13 @@ def get_clock_speed():
 def get_disk_usage(path):
     try:
         disk_percentage = str(psutil.disk_usage(path).percent)
+        return disk_percentage
     except Exception as e:
         print('Error while trying to obtain disk usage from ' + str(path) + ' with exception: ' + str(e))
-        raise
-
-    return disk_percentage
-
+        return None # Changed to return None for handling exception at function call location
 
 def get_memory_usage():
     return str(psutil.virtual_memory().percent)
-
 
 def get_load(arg):
     return str(psutil.getloadavg()[arg])

@@ -17,6 +17,7 @@ mqttClient = None
 global poll_interval
 devicename = None
 settings = {}
+external_drives = []
 
 class ProgramKilled(Exception):
     pass
@@ -47,10 +48,9 @@ class Job(threading.Thread):
 def update_sensors():
     payload_str = f'{{'
     for sensor, attr in sensors.items():
-        # skip sensors that have been disabled
-        if settings['sensors'][sensor] == False:
-            continue
-        payload_str += f'"{sensor}": "{attr["function"]()}",'
+        # Skip sensors that have been disabled or are missing
+        if sensor in external_drives or (settings['sensors'][sensor] is not None and settings['sensors'][sensor] == True):
+            payload_str += f'"{sensor}": "{attr["function"]()}",'
     payload_str = payload_str[:-1]
     payload_str += f'}}'
     mqttClient.publish(
@@ -60,13 +60,15 @@ def update_sensors():
         retain=False,
     )
 
+
 def send_config_message(mqttClient):
 
     write_message_to_console('Sending config message to host...')     
 
     for sensor, attr in sensors.items():
         try:
-            if settings['sensors'][sensor]:
+            # Added check in case sensor is an external drive, which is nested in the config
+            if sensor in external_drives or settings['sensors'][sensor]:
                 mqttClient.publish(
                     topic=f'homeassistant/{attr["sensor_type"]}/{devicename}/{sensor}/config',
                     payload = (f'{{'
@@ -87,6 +89,7 @@ def send_config_message(mqttClient):
                 )
         except Exception as e:
             write_message_to_console('An error was produced while processing ' + str(sensor) + ' with exception: ' + str(e))
+            print(str(settings))
             raise
 
     mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
@@ -111,7 +114,7 @@ def set_defaults(settings):
     if 'external_drives' not in settings['sensors'] or settings['sensors']['external_drives'] is None:
         settings['sensors']['external_drives'] = {}
 
-    # 'settings' argument is local, so this updated version needs to be returned to overwrite the one in the main function
+    # 'settings' argument is local, so needs to be returned to overwrite the one in the main function
     return settings
 
 def check_settings(settings):
@@ -139,12 +142,21 @@ def add_drives():
     drives = settings['sensors']['external_drives']
     if drives is not None:
         for drive in drives:
-            # check if drives exist?
-            sensors[f'disk_use_{drive.lower()}'] = {
+            drive_path = settings['sensors']['external_drives'][drive]
+            usage = get_disk_usage(drive_path)
+            if usage:
+                sensors[f'disk_use_{drive.lower()}'] = {
                         'name': f'Disk Use {drive}',
                         'unit': '%',
-                        'icon': 'harddisk'
-                        }
+                        'icon': 'harddisk',
+                        'sensor_type': 'sensor',
+                        'function': lambda: get_disk_usage(f'{drive_path}')
+                    }
+                # Add drive to list with formatted name, for when checking sensors against settings items
+                external_drives.append(f'disk_use_{drive.lower()}')
+            else:
+                # Skip drives not found. Could be worth sending "not mounted" as the value if users want to track mount status.
+                print(drive + ' is not mounted to host. Check config or host drive mount settings.')
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
