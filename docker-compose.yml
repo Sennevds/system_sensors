@@ -15,7 +15,4 @@ services:
       - /proc/device-tree/model:/app/host/proc/device-tree/model:ro
       - /tmp/system_sensor_pipe:/app/host/system_sensor_pipe:ro
     environment:
-      - MQTT_HOST=localhost
-      - MQTT_PORT=1883
-      - DEVICE_NAME=myPi
       - LD_LIBRARY_PATH=/opt/vc/lib
