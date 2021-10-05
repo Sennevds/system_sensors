@@ -109,7 +109,12 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# jetbrains (PyCharm/PHPStorm) project files
+.idea
+
 # mypy
 .mypy_cache/
-/src/settings.yaml
 system_sensors.service
+
+# ignore config directory created by docker
+/config

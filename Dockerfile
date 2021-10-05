@@ -1,13 +1,14 @@
-FROM arm32v7/python:3.9-alpine
+FROM arm32v7/python:3.9
 
-ENV TZ Europe/Berlin
-ENV MQTT_HOST localhost
-ENV MQTT_PORT 1883
-ENV DEVICE_NAME pi
-ENV WAIT_TIME 60
+RUN mkdir -p /app/config
+RUN mkdir -p /app/host
 
-COPY src/system_sensors.py requirements.txt /
+ENV YES_YOU_ARE_IN_A_CONTAINER=True
 
-RUN pip install -r requirements.txt
+COPY requirements.txt /app/
+RUN pip install -r /app/requirements.txt
 
-CMD [ "python", "./system_sensors.py" ]
+COPY src/ /app/
+RUN chmod a+x /app/bin/system_sensors.sh
+
+CMD /app/bin/system_sensors.sh

@@ -1,13 +1,13 @@
 version: '3'
 services:
   monitoring:
+    container_name: system-sensors
     build: .
     restart: always
-    container_name: system-sensors
     devices:
       - /dev/vchiq
     volumes:
-      - /opt/vc:/opt/vc
+      - ./config:/app/config
     environment:
       - MQTT_HOST=localhost
       - MQTT_PORT=1883
