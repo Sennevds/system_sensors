@@ -165,20 +165,54 @@ def get_rpi_power_status():
     return _underVoltage.get()
 
 def get_hostname():
-    return socket.gethostname()
+    if isDockerized:
+        # todo add a check to validate the file actually exists, in case someone forgot to map it
+        host = subprocess.check_output(["cat", "/app/host/hostname"]).decode("UTF-8").strip()
+    else:
+        host = socket.gethostname()
+    return host
 
 def get_host_ip():
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.connect(('8.8.8.8', 80))
-        return sock.getsockname()[0]
-    except socket.error:
+    if isDockerized:
+        return get_container_host_ip()
+    else:
         try:
-            return socket.gethostbyname(socket.gethostname())
-        except socket.gaierror:
-            return '127.0.0.1'
-    finally:
-        sock.close()
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.connect(('8.8.8.8', 80))
+            return sock.getsockname()[0]
+        except socket.error:
+            try:
+                return socket.gethostbyname(socket.gethostname())
+            except socket.gaierror:
+                return '127.0.0.1'
+        finally:
+            sock.close()
+
+def get_container_host_ip():
+    # todo add a check to validate the file actually exists, in case someone forgot to map it
+     data = subprocess.check_output(["cat", "/app/host/system_sensor_pipe"]).decode("UTF-8")
+     ip = ""
+     for line in data.split('\n'):
+         mo = re.match ("^.{2}(?P<id>.{2}).{2}(?P<addr>.{8})..{4} .{8}..{4} (?P<status>.{2}).*|", line)
+         if mo and mo.group("id") != "sl":
+             status = int(mo.group("status"), 16)
+             if status == 1: # connection established
+                 ip = hex2addr(mo.group("addr"))
+                 break
+     return ip
+
+def hex2addr(hex_addr):
+    l = len(hex_addr)
+    first = True
+    ip = ""
+    for i in range(l // 2):
+        if (first != True):
+            ip = "%s." % ip
+        else:
+            first = False
+        ip = ip + ("%d" % int(hex_addr[-2:], 16))
+        hex_addr = hex_addr[:-2]
+    return ip
 
 def get_host_os():
     try:

@@ -10,8 +10,10 @@ services:
     volumes:
       - ./config:/app/config
       - /etc/os-release:/app/host/os-release:ro
+      - /etc/hostname:/app/host/hostname:ro
       - /opt/vc:/opt/vc:ro
       - /proc/device-tree/model:/app/host/proc/device-tree/model:ro
+      - /tmp/system_sensor_pipe:/app/host/system_sensor_pipe:ro
     environment:
       - MQTT_HOST=localhost
       - MQTT_PORT=1883

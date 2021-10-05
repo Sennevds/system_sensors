@@ -63,6 +63,22 @@ You need to have at least **python 3.6** installed to use System Sensors.
    2. edit the path to your script path and settings.yaml. Also make sure you replace pi in "User=pi" with the account from which this script will be run. This is typically 'pi' on default raspbian system.
    3. sudo systemctl enable system_sensors.service
    4. sudo systemctl start system_sensors.service
+   
+# Docker 
+## Preparations
+Before running this application in a docker container you'll need to add the following to the crontab
+```
+@reboot <git clone location>/src/bin/ip_pipe.sh
+```
+This little script will create a pipe and fetch the Host OS IP address and put it in the pipe.  
+The container will have the pipe mounted `/tmp/system_sensor_pipe:/app/host/system_sensor_pipe:ro` so it can read the ip.  
+this is required sinds docker container can't and *shouldn't* access the host OS
+
+## Start Container
+Running in docker container is very symplistic:
+```
+docker-compose up -d
+```
 
 # Home Assistant configuration:
 
