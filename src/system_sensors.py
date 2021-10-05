@@ -77,7 +77,7 @@ def send_config_message(mqttClient):
                     + f'"unique_id":"{deviceName}_{attr["sensor_type"]}_{sensor}",'
                     + f'"availability_topic":"system-sensors/sensor/{deviceName}/availability",'
                     + f'"device":{{"identifiers":["{deviceName}_sensor"],'
-                    + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"RPI Foundation"}}'
+                    + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
                     + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
                     + (f',{attr["prop"]}' if 'prop' in attr else '')
                     + f'}}'
@@ -142,12 +142,13 @@ def add_drives():
 
 # host model method depending on system distro
 def get_host_model():
-    if "rasp" in OS_DATA["ID"] and isDockerized:
+    if "rasp" in OS_DATA["ID"] and isDockerized and isDeviceTreeModel:
         model = subprocess.check_output(["cat", "/app/host/proc/device-tree/model"]).decode("UTF-8").strip()
         # remove a weird character breaking the json in mqtt explorer
         model = model[:-1]
     else:
-        model = "RPI " + deviceNameDisplay
+        # todo find a solid way to determine sbc manufacture
+        model = f'{deviceManufacturer} {deviceNameDisplay}'
     return model
 
 def on_connect(client, userdata, flags, rc):
@@ -191,6 +192,7 @@ if __name__ == '__main__':
     deviceName = settings['deviceName'].replace(' ', '').lower()
     deviceNameDisplay = settings['deviceName']
     deviceModel = get_host_model()
+    deviceManufacturer = "RPI Foundation" if "rasp" in OS_DATA["ID"] else OS_DATA['Name']
 
     mqttClient = mqtt.Client(client_id=settings['client_id'])
     mqttClient.on_connect = on_connect                      #attach function to callback

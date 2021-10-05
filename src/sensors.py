@@ -10,6 +10,7 @@ import subprocess
 import datetime as dt
 import sys
 import os
+# import os.path
 
 class ProperyBag(dict):
     def to_string(self, device_name:str):
@@ -28,11 +29,15 @@ except ImportError:
     apt_disabled = True
 
 isDockerized = bool(os.getenv('YES_YOU_ARE_IN_A_CONTAINER', False))
+isOsRelease = os.path.isfile('/app/host/os-release')
+isHostname = os.path.isfile('/app/host/hostname')
+isDeviceTreeModel = os.path.isfile('/app/host/proc/device-tree/model')
+isSystemSensorPipe = os.path.isfile('/app/host/system_sensor_pipe')
 
 vcgencmd   = "vcgencmd"
 os_release = "/etc/os-release"
 if isDockerized:
-    os_release = "/app/host/os-release"
+    os_release = "/app/host/os-release" if isOsRelease else '/etc/os-release'
     vcgencmd   = "/opt/vc/bin/vcgencmd"
 
 # Get OS information
@@ -178,15 +183,14 @@ def get_rpi_power_status():
     return _underVoltage.get()
 
 def get_hostname():
-    if isDockerized:
-        # todo add a check to validate the file actually exists, in case someone forgot to map it
+    if isDockerized and isHostname:
         host = subprocess.check_output(["cat", "/app/host/hostname"]).decode("UTF-8").strip()
     else:
         host = socket.gethostname()
     return host
 
 def get_host_ip():
-    if isDockerized:
+    if isDockerized and isSystemSensorPipe:
         return get_container_host_ip()
     else:
         try:
@@ -202,7 +206,6 @@ def get_host_ip():
             sock.close()
 
 def get_container_host_ip():
-    # todo add a check to validate the file actually exists, in case someone forgot to map it
      data = subprocess.check_output(["cat", "/app/host/system_sensor_pipe"]).decode("UTF-8")
      ip = ""
      for line in data.split('\n'):
