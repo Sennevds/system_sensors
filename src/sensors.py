@@ -9,6 +9,7 @@ import platform
 import subprocess
 import datetime as dt
 import sys
+import os
 
 try:
     from rpi_bad_power import new_under_voltage
@@ -22,10 +23,17 @@ try:
 except ImportError:
     apt_disabled = True
 
+isDockerized = bool(os.getenv('YES_YOU_ARE_IN_A_CONTAINER', False))
+
+vcgencmd   = "vcgencmd"
+os_release = "/etc/os-release"
+if isDockerized:
+    os_release = "/app/host/os-release"
+    vcgencmd   = "/opt/vc/bin/vcgencmd"
 
 # Get OS information
 OS_DATA = {}
-with open('/etc/os-release') as f:
+with open(os_release) as f:
     for line in f.readlines():
         row = line.strip().split("=")
         OS_DATA[row[0]] = row[1].strip('"')
@@ -77,7 +85,7 @@ def get_updates():
 def get_temp():
     temp = ''
     if 'rasp' in OS_DATA['ID']:
-        reading = subprocess.check_output(['vcgencmd', 'measure_temp']).decode('UTF-8')
+        reading = subprocess.check_output([vcgencmd, 'measure_temp']).decode('UTF-8')
         temp = str(re.findall('\d+.\d+', reading)[0])
     else:
         reading = subprocess.check_output(['cat', '/sys/class/thermal/thermal_zone0/temp']).decode('UTF-8')
@@ -88,7 +96,7 @@ def get_temp():
 def get_clock_speed():
     clock_speed = ''
     if 'rasp' in OS_DATA['ID']:
-        reading = subprocess.check_output(['vcgencmd', 'measure_clock','arm']).decode('UTF-8')
+        reading = subprocess.check_output([vcgencmd, 'measure_clock','arm']).decode('UTF-8')
         clock_speed = str(int(re.findall('\d+', reading)[1]) / 1000000)
     else: # need linux system to test
         reading = subprocess.check_output(['cat', '/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq']).decode('UTF-8')

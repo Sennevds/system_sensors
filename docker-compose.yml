@@ -8,6 +8,8 @@ services:
       - /dev/vchiq
     volumes:
       - ./config:/app/config
+      - /etc/os-release:/app/host/os-release:ro
+      - /opt/vc:/opt/vc:ro
     environment:
       - MQTT_HOST=localhost
       - MQTT_PORT=1883
