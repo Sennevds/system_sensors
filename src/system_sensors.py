@@ -74,11 +74,12 @@ def send_config_message(mqttClient):
                     + f'"state_topic":"system-sensors/sensor/{deviceName}/state",'
                     + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
                     + f'"value_template":"{{{{value_json.{sensor}}}}}",'
-                    + f'"unique_id":"{deviceName}_sensor_{sensor}",'
+                    + f'"unique_id":"{deviceName}_{attr["sensor_type"]}_{sensor}",'
                     + f'"availability_topic":"system-sensors/sensor/{deviceName}/availability",'
                     + f'"device":{{"identifiers":["{deviceName}_sensor"],'
                     + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"RPI Foundation"}}'
                     + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
+                    + (f',{attr["prop"]}' if 'prop' in attr else '')
                     + f'}}'
                     ),
             qos=1,
@@ -106,6 +107,8 @@ def set_defaults(settings):
             settings['sensors'][sensor] = True
     if 'external_drives' not in settings['sensors']:
         settings['sensors']['external_drives'] = {}
+    if "rasp" not in OS_DATA["ID"]:
+        settings['sensors']['display'] = False
 
 def check_settings(settings):
     values_to_check = ['mqtt', 'timezone', 'deviceName', 'client_id']
@@ -150,8 +153,13 @@ def get_host_model():
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         write_message_to_console('Connected to broker')
+        print("subscribing : hass/status")
         client.subscribe('hass/status')
+        print("subscribing : " + f"system-sensors/sensor/{deviceName}/availability")
         mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'online', retain=True)
+        print("subscribing : " + f"system-sensors/sensor/{deviceName}/command")
+        client.subscribe(f"system-sensors/sensor/{deviceName}/command")#subscribe
+        client.publish(f"system-sensors/sensor/{deviceName}/command", "setup", retain=True)
     elif rc == 5:
         write_message_to_console('Authentication failed.\n Exiting.')
         sys.exit()
@@ -160,8 +168,14 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     print (f'Message received: {message.payload.decode()}'  )
-    if(message.payload.decode() == 'online'):
+    if message.payload.decode() == 'online':
         send_config_message(client)
+    elif message.payload.decode() == "display_on":
+        reading = subprocess.check_output([vcgencmd, "display_power", "1"]).decode("UTF-8")
+        update_sensors()
+    elif message.payload.decode() == "display_off":
+        reading = subprocess.check_output([vcgencmd, "display_power", "0"]).decode("UTF-8")
+        update_sensors()
 
 if __name__ == '__main__':
     args = _parser().parse_args()

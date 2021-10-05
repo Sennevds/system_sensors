@@ -11,6 +11,10 @@ import datetime as dt
 import sys
 import os
 
+class ProperyBag(dict):
+    def to_string(self, device_name:str):
+        return str.replace(str.replace(str.replace(self.__str__(), "{device_name}", device_name), "{", ''), "}", '')
+
 try:
     from rpi_bad_power import new_under_voltage
     rpi_power_disabled = False
@@ -91,6 +95,15 @@ def get_temp():
         reading = subprocess.check_output(['cat', '/sys/class/thermal/thermal_zone0/temp']).decode('UTF-8')
         temp = str(reading[0] + reading[1] + '.' + reading[2]) # why?? need linux system to test
     return temp
+
+# display power method depending on system distro
+def get_display_status():
+    if "rasp" in OS_DATA["ID"]:
+        reading = subprocess.check_output([vcgencmd, "display_power"]).decode("UTF-8")
+        display_state = str(re.findall("^display_power=(?P<display_state>[01]{1})$", reading)[0])
+    else:
+        display_state = "Unknown"
+    return display_state
 
 # Clock speed method depending on system distro
 def get_clock_speed():
@@ -227,13 +240,28 @@ def get_host_arch():
         return 'Unknown'
 
 sensors = {
-          'temperature': 
+          'temperature':
                 {'name':'Temperature',
                  'class': 'temperature',
                  'unit': '°C',
                  'icon': 'thermometer',
                  'sensor_type': 'sensor',
                  'function': get_temp},
+          'display':
+                {'name':'Display Switch',
+                 'icon': 'monitor',
+                 'sensor_type': 'switch',
+                 'function': get_display_status,
+                 'prop': ProperyBag({
+                     'availability_topic' : "system-sensors/sensor/{device_name}/availability",
+                     'command_topic'      : 'system-sensors/sensor/{device_name}/command',
+                     'state_topic'        : 'system-sensors/sensor/{device_name}/state',
+                     'value_template'     : '{{value_json.display}}',
+                     'state_off'          : '0',
+                     'state_on'           : '1',
+                     'payload_off'        : 'display_off',
+                     'payload_on'         : 'display_on',
+                 })},
           'clock_speed':
                 {'name':'Clock Speed',
                  'unit': 'MHz',
@@ -327,22 +355,23 @@ sensors = {
                  'icon': 'clock-check',
                  'sensor_type': 'sensor',
                  'function': get_last_message},
-          'updates': 
+          'updates':
                 {'name':'Updates',
                  'icon': 'cellphone-arrow-down',
                  'sensor_type': 'sensor',
                  'function': get_updates},
-          'wifi_strength': 
+          'wifi_strength':
                 {'class': 'signal_strength',
                  'name':'Wifi Strength',
                  'unit': 'dBm',
                  'icon': 'wifi',
                  'sensor_type': 'sensor',
                  'function': get_wifi_strength},
-          'wifi_ssid': 
+          'wifi_ssid':
                 {'class': 'signal_strength',
                  'name':'Wifi SSID',
                  'icon': 'wifi',
                  'sensor_type': 'sensor',
                  'function': get_wifi_ssid},
           }
+

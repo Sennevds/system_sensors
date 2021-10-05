@@ -9,6 +9,7 @@ timezone: Europe/Brussels
 update_interval: 60 #Defaults to 60
 sensors:
   temperature: true
+  display: true
   clock_speed: true
   disk_use: true
   memory_use: true
