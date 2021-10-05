@@ -77,7 +77,7 @@ def send_config_message(mqttClient):
                     + f'"unique_id":"{deviceName}_sensor_{sensor}",'
                     + f'"availability_topic":"system-sensors/sensor/{deviceName}/availability",'
                     + f'"device":{{"identifiers":["{deviceName}_sensor"],'
-                    + f'"name":"{deviceNameDisplay} Sensors","model":"RPI {deviceNameDisplay}", "manufacturer":"RPI"}}'
+                    + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"RPI Foundation"}}'
                     + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
                     + f'}}'
                     ),
@@ -137,6 +137,16 @@ def add_drives():
                      'icon': 'harddisk'
                      }
 
+# host model method depending on system distro
+def get_host_model():
+    if "rasp" in OS_DATA["ID"] and isDockerized:
+        model = subprocess.check_output(["cat", "/app/host/proc/device-tree/model"]).decode("UTF-8").strip()
+        # remove a weird character breaking the json in mqtt explorer
+        model = model[:-1]
+    else:
+        model = "RPI " + deviceNameDisplay
+    return model
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         write_message_to_console('Connected to broker')
@@ -166,6 +176,7 @@ if __name__ == '__main__':
 
     deviceName = settings['deviceName'].replace(' ', '').lower()
     deviceNameDisplay = settings['deviceName']
+    deviceModel = get_host_model()
 
     mqttClient = mqtt.Client(client_id=settings['client_id'])
     mqttClient.on_connect = on_connect                      #attach function to callback
