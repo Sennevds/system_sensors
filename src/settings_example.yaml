@@ -29,5 +29,5 @@ sensors:
   updates: true
   wifi_strength: true
   wifi_ssid: true
-  external_drives:
-    Drive1: /boot/
+external_drives:
+  Drive1: /boot/
