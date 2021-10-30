@@ -206,6 +206,16 @@ def get_host_arch():
     except:
         return 'Unknown'
 
+# Builds an external drive entry to fix incorrect usage reporting
+def external_drive_base(drive, drive_path) -> dict:
+    return {
+        'name': f'Disk Use {drive}',
+        'unit': '%',
+        'icon': 'harddisk',
+        'sensor_type': 'sensor',
+        'function': lambda: get_disk_usage(f'{drive_path}')
+        }
+
 sensors = {
           'temperature': 
                 {'name':'Temperature',

@@ -145,13 +145,7 @@ def add_drives():
             drive_path = settings['sensors']['external_drives'][drive]
             usage = get_disk_usage(drive_path)
             if usage:
-                sensors[f'disk_use_{drive.lower()}'] = {
-                        'name': f'Disk Use {drive}',
-                        'unit': '%',
-                        'icon': 'harddisk',
-                        'sensor_type': 'sensor',
-                        'function': lambda: get_disk_usage(f'{drive_path}')
-                    }
+                sensors[f'disk_use_{drive.lower()}'] = external_drive_base(drive, drives[drive])
                 # Add drive to list with formatted name, for when checking sensors against settings items
                 external_drives.append(f'disk_use_{drive.lower()}')
             else:
