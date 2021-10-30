@@ -3,4 +3,3 @@ psutil==5.6.6
 pytz==2019.2
 PyYAML==5.4
 rpi_bad_power==0.1.0
-schedule
