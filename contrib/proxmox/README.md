@@ -15,10 +15,12 @@ Proxmox 7 pve
 
 
 ```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/patriciocl/system_sensors/master/contrib/proxmox/install_proxmox.sh USERMQTT PASSMQTT HOSTMQTT)"
+wget -qO install_proxmox.sh https://raw.githubusercontent.com/patriciocl/system_sensors/master/contrib/proxmox/install_proxmox.sh
+sh install_proxmox.sh USERMQTT PASSMQTT HOSTMQTT
 ```
 
-## Example:
+
 ```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/patriciocl/system_sensors/master/contrib/proxmox/install_proxmox.sh patriciomqtt Superpass 192.168.97.21)"
+wget -qO install_proxmox.sh https://raw.githubusercontent.com/patriciocl/system_sensors/master/contrib/proxmox/install_proxmox.sh
+sh install_proxmox.sh  hass Patricio 192.168.98.21
 ```
