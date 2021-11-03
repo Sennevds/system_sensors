@@ -19,6 +19,7 @@ wget -qO install_proxmox.sh https://raw.githubusercontent.com/patriciocl/system_
 sh install_proxmox.sh USERMQTT PASSMQTT HOSTMQTT
 ```
 
+Example:
 
 ```bash
 wget -qO install_proxmox.sh https://raw.githubusercontent.com/patriciocl/system_sensors/master/contrib/proxmox/install_proxmox.sh
