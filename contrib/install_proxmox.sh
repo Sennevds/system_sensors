@@ -3,6 +3,7 @@
 # version without check
 # Autodetect host timezone
 # disable wifi
+# t.me / proxmox-ha
 USER=$1
 PASS=$2
 HOST=$3
