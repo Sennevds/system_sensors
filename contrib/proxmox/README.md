@@ -1,8 +1,15 @@
 
 # System Requirements
 
+
 Proxmox 7 pve
 
+# Changes / Automatic
+
+- Create Group/User systemsensors ( linux )
+- Autodetect timezone ( linux )
+- Last message disabled ( config )
+- Wifi ( config )
 
 ## Install:
 
