@@ -86,5 +86,6 @@ WantedBy=multi-user.target" > /etc/systemd/system/system_sensors.service
 
 systemctl daemon-reload
 systemctl enable system_sensors
+systemctl start system_sensors
 systemctl status system_sensors
 
