@@ -7,6 +7,7 @@
 USER=$1
 PASS=$2
 HOST=$3
+DEVICENAME=$4
 TIMEZONE=$(timedatectl |grep "Time zone"|awk '{print $3}')
 
 echo "update apt-get and install"
@@ -39,8 +40,8 @@ echo "mqtt:
   port: 1883 #defaults to 1883
   user: $USER
   password: $PASS
-deviceName: systemsensors
-client_id: systemsensors
+deviceName: $DEVICENAME
+client_id: $DEVICENAME
 timezone: $TIMEZONE
 update_interval: 60 #Defaults to 60
 sensors:
