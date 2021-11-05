@@ -15,13 +15,13 @@ Proxmox 7 pve
 
 
 ```bash
-wget -qO install_proxmox.sh https://raw.githubusercontent.com/patriciocl/system_sensors/master/contrib/proxmox/install_proxmox.sh
+wget -qO install_proxmox.sh https://raw.githubusercontent.com/Sennevds/system_sensors/master/contrib/proxmox/install_proxmox.sh
 sh install_proxmox.sh USERMQTT PASSMQTT HOSTMQTT
 ```
 
 Example:
 
 ```bash
-wget -qO install_proxmox.sh https://raw.githubusercontent.com/patriciocl/system_sensors/master/contrib/proxmox/install_proxmox.sh
-sh install_proxmox.sh hass Patricio 192.168.98.21
+wget -qO install_proxmox.sh https://raw.githubusercontent.com/Sennevds/system_sensors/master/contrib/proxmox/install_proxmox.sh
+sh install_proxmox.sh hass hass 192.168.98.21
 ```
