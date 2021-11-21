@@ -16,11 +16,18 @@ class ProperyBag(dict):
     def to_string(self, device_name:str):
         return str.replace(str.replace(str.replace(self.__str__(), "{device_name}", device_name), "{", ''), "}", '')
 
+# Only needed if using alternate method of obtaining CPU temperature (see commented out code for approach)
+#from os import walk
+
+
+rpi_power_disabled = True
 try:
     from rpi_bad_power import new_under_voltage
-    rpi_power_disabled = False
+    if new_under_voltage() is not None:
+        # Only enable if import works and function returns a value
+        rpi_power_disabled = False
 except ImportError:
-    rpi_power_disabled = True
+    pass
 
 try:
     import apt
@@ -59,7 +66,6 @@ def set_default_timezone(timezone):
     global DEFAULT_TIME_ZONE
     DEFAULT_TIME_ZONE = timezone
 
-
 def write_message_to_console(message):
     print(message)
     sys.stdout.flush()
@@ -92,14 +98,32 @@ def get_updates():
 
 # Temperature method depending on system distro
 def get_temp():
-    temp = ''
-    if 'rasp' in OS_DATA['ID']:
-        reading = subprocess.check_output([vcgencmd, 'measure_temp']).decode('UTF-8')
-        temp = str(re.findall('\d+.\d+', reading)[0])
-    else:
-        reading = subprocess.check_output(['cat', '/sys/class/thermal/thermal_zone0/temp']).decode('UTF-8')
-        temp = str(reading[0] + reading[1] + '.' + reading[2]) # why?? need linux system to test
-    return temp
+    temp = 'Unknown'
+    # Utilising psutil for temp reading on ARM arch
+    try:
+        temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
+    except:
+        try:
+            # Assumes that first entry is the CPU package, have not tested this on other systems except my NUC x86
+            temp = psutil.sensors_temperatures()['coretemp'][0].current
+        except Exception as e:
+            print('Could not establish CPU temperature reading: ' + str(e))
+            raise
+    return round(temp, 1)
+
+            # Option to use thermal_zone readings instead of psutil
+
+            # base_dir = '/sys/class/thermal/'
+            # zone_dir = ''
+            # print('Could not cpu_thermal property. Checking thermal zone for x86 architecture')
+            # for root, dir, files in walk(base_dir):
+            #     for d in dir:
+            #         if 'thermal_zone' in d:
+            #             temp_type = str(subprocess.check_output(['cat', base_dir + d + '/type']).decode('UTF-8'))
+            #             if 'x86' in temp_type:
+            #                 zone_dir = d
+            #                 break
+            # temp = str(int(subprocess.check_output(['cat', base_dir + zone_dir + '/temp']).decode('UTF-8')) / 1000)
 
 # display power method depending on system distro
 def get_display_status():
@@ -110,24 +134,21 @@ def get_display_status():
         display_state = "Unknown"
     return display_state
 
-# Clock speed method depending on system distro
+# Replaced with psutil method - does this not work fine?
 def get_clock_speed():
-    clock_speed = ''
-    if 'rasp' in OS_DATA['ID']:
-        reading = subprocess.check_output([vcgencmd, 'measure_clock','arm']).decode('UTF-8')
-        clock_speed = str(int(re.findall('\d+', reading)[1]) / 1000000)
-    else: # need linux system to test
-        reading = subprocess.check_output(['cat', '/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq']).decode('UTF-8')
-        clock_speed = str(int(re.findall('\d+', reading)[0]) / 1000)
+    clock_speed = int(psutil.cpu_freq().current)
     return clock_speed
 
 def get_disk_usage(path):
-    return str(psutil.disk_usage(path).percent)
-
+    try:
+        disk_percentage = str(psutil.disk_usage(path).percent)
+        return disk_percentage
+    except Exception as e:
+        print('Error while trying to obtain disk usage from ' + str(path) + ' with exception: ' + str(e))
+        return None # Changed to return None for handling exception at function call location
 
 def get_memory_usage():
     return str(psutil.virtual_memory().percent)
-
 
 def get_load(arg):
     return str(psutil.getloadavg()[arg])
@@ -241,6 +262,16 @@ def get_host_arch():
         return platform.machine()
     except:
         return 'Unknown'
+
+# Builds an external drive entry to fix incorrect usage reporting
+def external_drive_base(drive, drive_path) -> dict:
+    return {
+        'name': f'Disk Use {drive}',
+        'unit': '%',
+        'icon': 'harddisk',
+        'sensor_type': 'sensor',
+        'function': lambda: get_disk_usage(f'{drive_path}')
+        }
 
 sensors = {
           'temperature':
