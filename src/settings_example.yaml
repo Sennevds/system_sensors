@@ -1,6 +1,6 @@
 mqtt:
   hostname: 127.0.0.1
-  port: 1234 #defaults to 1883
+  port: 1883 #defaults to 1883
   user: test
   password: test
 deviceName: test
@@ -31,4 +31,5 @@ sensors:
   wifi_strength: true
   wifi_ssid: true
   external_drives:
-    Drive1: /boot/
+    # Only add mounted drives here, e.g.:
+    # Drive1: /media/storage

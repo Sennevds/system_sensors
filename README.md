@@ -124,17 +124,17 @@ Config:
             hours_to_show: 24
       - type: custom:bar-card
         entity: sensor.deconz_disk_use
-        title: HDD
-        title_position: inside
-        align: split
-        show_icon: true
+        name: HDD
+        positions: 
+          icon: outside
+          name: inside
         color: '#00ba6a'
       - type: custom:bar-card
         entity: sensor.deconz_memory_use
-        title: RAM
-        title_position: inside
-        align: split
-        show_icon: true
+        name: RAM
+        positions: 
+          icon: outside
+          name: inside
       - type: entities
         entities:
           - sensor.deconz_last_boot
