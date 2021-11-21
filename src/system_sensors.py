@@ -64,7 +64,6 @@ def send_config_message(mqttClient):
     write_message_to_console('Sending config message to host...')     
 
     for sensor, attr in sensors.items():
-
         try:
             # Added check in case sensor is an external drive, which is nested in the config
             if sensor in external_drives or settings['sensors'][sensor]:
@@ -80,7 +79,7 @@ def send_config_message(mqttClient):
                             + f'"availability_topic":"system-sensors/sensor/{devicename}/availability",'
                             + f'"device":{{"identifiers":["{devicename}_sensor"],'
                             + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
-                    		+ (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
+                            + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
                     		+ (f',{attr["prop"]}' if 'prop' in attr else '')
                             + f'}}'
                             ),
@@ -163,10 +162,10 @@ def on_connect(client, userdata, flags, rc):
         print("subscribing : hass/status")
         client.subscribe('hass/status')
         print("subscribing : " + f"system-sensors/sensor/{devicename}/availability")
-        mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'online', retain=True)
-        print("subscribing : " + f"system-sensors/sensor/{deviceName}/command")
-        client.subscribe(f"system-sensors/sensor/{deviceName}/command")#subscribe
-        client.publish(f"system-sensors/sensor/{deviceName}/command", "setup", retain=True)
+        mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
+        print("subscribing : " + f"system-sensors/sensor/{devicename}/command")
+        client.subscribe(f"system-sensors/sensor/{devicename}/command")#subscribe
+        client.publish(f"system-sensors/sensor/{devicename}/command", "setup", retain=True)
     elif rc == 5:
         write_message_to_console('Authentication failed.\n Exiting.')
         sys.exit()
