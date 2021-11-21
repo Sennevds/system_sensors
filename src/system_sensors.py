@@ -61,32 +61,38 @@ def update_sensors():
 
 def send_config_message(mqttClient):
 
-    write_message_to_console('send config message')     
+    write_message_to_console('Sending config message to host...')     
 
     for sensor, attr in sensors.items():
-        if settings['sensors'][sensor] == False:
-            continue
-        mqttClient.publish(
-            topic=f'homeassistant/{attr["sensor_type"]}/{deviceName}/{sensor}/config',
-            payload = (f'{{'
-                    + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
-                    + f'"name":"{deviceNameDisplay} {attr["name"]}",'
-                    + f'"state_topic":"system-sensors/sensor/{deviceName}/state",'
-                    + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
-                    + f'"value_template":"{{{{value_json.{sensor}}}}}",'
-                    + f'"unique_id":"{deviceName}_{attr["sensor_type"]}_{sensor}",'
-                    + f'"availability_topic":"system-sensors/sensor/{deviceName}/availability",'
-                    + f'"device":{{"identifiers":["{deviceName}_sensor"],'
-                    + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
-                    + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
-                    + (f',{attr["prop"]}' if 'prop' in attr else '')
-                    + f'}}'
-                    ),
-            qos=1,
-            retain=True,
-        )
 
-    mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'online', retain=True)
+        try:
+            # Added check in case sensor is an external drive, which is nested in the config
+            if sensor in external_drives or settings['sensors'][sensor]:
+                mqttClient.publish(
+                    topic=f'homeassistant/{attr["sensor_type"]}/{devicename}/{sensor}/config',
+                    payload = (f'{{'
+                            + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
+                            + f'"name":"{deviceNameDisplay} {attr["name"]}",'
+                            + f'"state_topic":"system-sensors/sensor/{devicename}/state",'
+                            + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
+                            + f'"value_template":"{{{{value_json.{sensor}}}}}",'
+                            + f'"unique_id":"{devicename}_{attr["sensor_type"]}_{sensor}",'
+                            + f'"availability_topic":"system-sensors/sensor/{devicename}/availability",'
+                            + f'"device":{{"identifiers":["{devicename}_sensor"],'
+                            + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
+                    		+ (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
+                    		+ (f',{attr["prop"]}' if 'prop' in attr else '')
+                            + f'}}'
+                            ),
+                    qos=1,
+                    retain=True,
+                )
+        except Exception as e:
+            write_message_to_console('An error was produced while processing ' + str(sensor) + ' with exception: ' + str(e))
+            print(str(settings))
+            raise
+
+    mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
 
 def _parser():
     """Generate argument parser"""
@@ -156,7 +162,7 @@ def on_connect(client, userdata, flags, rc):
         write_message_to_console('Connected to broker')
         print("subscribing : hass/status")
         client.subscribe('hass/status')
-        print("subscribing : " + f"system-sensors/sensor/{deviceName}/availability")
+        print("subscribing : " + f"system-sensors/sensor/{devicename}/availability")
         mqttClient.publish(f'system-sensors/sensor/{deviceName}/availability', 'online', retain=True)
         print("subscribing : " + f"system-sensors/sensor/{deviceName}/command")
         client.subscribe(f"system-sensors/sensor/{deviceName}/command")#subscribe
@@ -189,8 +195,8 @@ if __name__ == '__main__':
     
     add_drives()
 
-    deviceName = settings['deviceName'].replace(' ', '').lower()
-    deviceNameDisplay = settings['deviceName']
+    devicename = settings['devicename'].replace(' ', '').lower()
+    deviceNameDisplay = settings['devicename']
     deviceModel = get_host_model()
     deviceManufacturer = "RPI Foundation" if "rasp" in OS_DATA["ID"] else OS_DATA['Name']
 
