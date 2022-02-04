@@ -244,7 +244,7 @@ sensors = {
           'cpu_usage':
                 {'name':'CPU Usage',
                  'unit': '%',
-                 'icon': 'memory',
+                 'icon': 'chip',
                  'sensor_type': 'sensor',
                  'function': get_cpu_usage},
           'load_1m':
