@@ -84,7 +84,11 @@ def get_temp():
     temp = 'Unknown'
     # Utilising psutil for temp reading on ARM arch
     try:
-        temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
+        t = psutil.sensors_temperatures()
+        for x in ['cpu-thermal', 'cpu_thermal']:
+            if x in t:
+                temp = t[x][0].current
+                break
     except:
         try:
             # Assumes that first entry is the CPU package, have not tested this on other systems except my NUC x86
@@ -176,7 +180,7 @@ def get_wifi_ssid():
     return (ssid)
 
 def get_rpi_power_status():
-    return _underVoltage.get()
+    return 'ON' if _underVoltage.get() else 'OFF'
 
 def get_hostname():
     return socket.gethostname()
