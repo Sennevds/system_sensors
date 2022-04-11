@@ -87,42 +87,44 @@ I have used following custom plugins for lovelace:
 Config:
 
 ```yaml
-- type: 'custom:vertical-stack-in-card'
-    title: Deconz System Monitor
-    cards:
-      - type: horizontal-stack
-        cards:
-          - type: custom:mini-graph-card
-            entities:
-              - sensor.deconz_cpu_usage
-            name: CPU
-            line_color: '#2980b9'
-            line_width: 2
-            hours_to_show: 24
-          - type: custom:mini-graph-card
-            entities:
-              - sensor.deconz_temperature
-            name: Temp
-            line_color: '#2980b9'
-            line_width: 2
-            hours_to_show: 24
-      - type: custom:bar-card
-        entity: sensor.deconz_disk_use
-        name: HDD
-        positions: 
-          icon: outside
-          name: inside
-        color: '#00ba6a'
-      - type: custom:bar-card
-        entity: sensor.deconz_memory_use
-        name: RAM
-        positions: 
-          icon: outside
-          name: inside
-      - type: entities
-        entities:
-          - sensor.deconz_last_boot
-          - sensor.deconz_under_voltage
+- type: vertical-stack
+  title: RPi4 System Monitor
+  cards:
+    - type: horizontal-stack
+      cards:
+        - type: custom:mini-graph-card
+          entities:
+            - sensor.rpi4_cpu_usage
+          name: CPU
+          line_color: '#2980b9'
+          line_width: 2
+          hours_to_show: 24
+        - type: custom:mini-graph-card
+          entities:
+            - sensor.rpi4_temperature
+          name: Temp
+          line_color: '#2980b9'
+          line_width: 2
+          hours_to_show: 24
+    - type: custom:bar-card
+      name: HDD
+      positions:
+        icon: outside
+        name: inside
+      color: '#00ba6a'
+      entities:
+        - entity: sensor.rpi4_disk_use
+    - type: custom:bar-card
+      name: RAM
+      positions:
+        icon: outside
+        name: inside
+      entities:
+        - entity: sensor.rpi4_memory_use
+    - type: entities
+      entities:
+        - entity: binary_sensor.rpi4_under_voltage
+
 ```
 
 Example:
