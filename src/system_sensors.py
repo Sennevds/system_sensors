@@ -213,7 +213,7 @@ if __name__ == '__main__':
 
     # Make settings file keys all lowercase
     settings = {k.lower(): v for k,v in settings.items()}
-    # Prep settings with defaults if keys missing
+    # Prep settings with defaults if keys missingf
     settings = set_defaults(settings)
     # Check for settings that will prevent the script from communicating with MQTT broker or break the script
     check_settings(settings)
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     devicename = settings['devicename'].replace(' ', '').lower()
     deviceNameDisplay = settings['devicename']
     deviceModel = get_host_model()
-    deviceManufacturer = "RPI Foundation" if "rasp" in OS_DATA["ID"] else OS_DATA['Name']
+    deviceManufacturer = "RPI Foundation" if "rasp" in OS_DATA["ID"] else OS_DATA['NAME']
 
     mqttClient = mqtt.Client(client_id=settings['client_id'])
     mqttClient.on_connect = on_connect                      #attach function to callback
