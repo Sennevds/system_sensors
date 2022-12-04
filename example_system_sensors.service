@@ -1,5 +1,5 @@
 [Unit]
-Description=System Sensor service
+Description=Python based System Sensor Service for MQTT
 After=multi-user.target
 
 [Service]
