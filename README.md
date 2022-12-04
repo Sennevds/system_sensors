@@ -89,43 +89,45 @@ I have used following custom plugins for lovelace:
 Config:
 
 ```yaml
-- type: 'custom:vertical-stack-in-card'
-    title: Deconz System Monitor
+type: custom:vertical-stack-in-card
+title: Deconz System Monitor
+cards:
+  - type: horizontal-stack
     cards:
-      - type: horizontal-stack
-        cards:
-          - type: custom:mini-graph-card
-            entities:
-              - sensor.deconz_cpu_usage
-            name: CPU
-            line_color: '#2980b9'
-            line_width: 2
-            hours_to_show: 24
-          - type: custom:mini-graph-card
-            entities:
-              - sensor.deconz_temperature
-            name: Temp
-            line_color: '#2980b9'
-            line_width: 2
-            hours_to_show: 24
-      - type: custom:bar-card
-        entity: sensor.deconz_disk_use
-        name: HDD
-        positions: 
-          icon: outside
-          name: inside
-        color: '#00ba6a'
-      - type: custom:bar-card
-        entity: sensor.deconz_memory_use
-        name: RAM
-        positions: 
-          icon: outside
-          name: inside
-      - type: entities
+      - type: custom:mini-graph-card
         entities:
-          - sensor.deconz_last_boot
-          - sensor.deconz_under_voltage
+          - sensor.deconz_cpu_usage
+        name: CPU
+        line_color: '#2980b9'
+        line_width: 2
+        hours_to_show: 24
+      - type: custom:mini-graph-card
+        entities:
+          - sensor.deconz_temperature
+        name: Temp
+        line_color: '#2980b9'
+        line_width: 2
+        hours_to_show: 24
+  - type: custom:bar-card
+    entity: sensor.deconz_disk_use
+    name: HDD
+    positions:
+      icon: outside
+      name: inside
+    color: '#00ba6a'
+  - type: custom:bar-card
+    entity: sensor.deconz_memory_use
+    name: RAM
+    positions:
+      icon: outside
+      name: inside
+  - type: entities
+    entities:
+      - sensor.deconz_last_boot
+      - binary_sensor.deconz_under_voltage
 ```
+
+Note: you need to change the friendly name for entities like last boot in the _entity settings_, the card  prints the default entity string if no friendly name was defined.
 
 Example:
 
