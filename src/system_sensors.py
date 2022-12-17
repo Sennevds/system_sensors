@@ -10,7 +10,7 @@ import argparse
 import threading
 import paho.mqtt.client as mqtt
 
-from sensors import * 
+from sensors import *
 
 
 mqttClient = None
@@ -63,7 +63,7 @@ def update_sensors():
 
 def send_config_message(mqttClient):
 
-    write_message_to_console('Sending config message to host...')     
+    write_message_to_console('Sending config message to host...')
 
     for sensor, attr in sensors.items():
         try:
@@ -73,6 +73,7 @@ def send_config_message(mqttClient):
                     topic=f'homeassistant/{attr["sensor_type"]}/{devicename}/{sensor}/config',
                     payload = (f'{{'
                             + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
+			    + (f'"state_class":"{attr["state_class"]}",' if 'state_class' in attr else '')
                             + f'"name":"{deviceNameDisplay} {attr["name"]}",'
                             + f'"state_topic":"system-sensors/sensor/{devicename}/state",'
                             + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
@@ -97,7 +98,7 @@ def send_config_message(mqttClient):
 def _parser():
     """Generate argument parser"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('settings', help='path to the settings file')   
+    parser.add_argument('settings', help='path to the settings file')
     return parser
 
 def set_defaults(settings):
@@ -192,7 +193,7 @@ if __name__ == '__main__':
     settings = set_defaults(settings)
     # Check for settings that will prevent the script from communicating with MQTT broker or break the script
     check_settings(settings)
-    
+
     add_drives()
 
     devicename = settings['devicename'].replace(' ', '').lower()
@@ -206,21 +207,21 @@ if __name__ == '__main__':
         mqttClient.username_pw_set(
             settings['mqtt']['user'], settings['mqtt']['password']
         )
-    
+
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
-    
+
     while True:
         try:
             mqttClient.connect(settings['mqtt']['hostname'], settings['mqtt']['port'])
             break
         except ConnectionRefusedError:
-            # sleep for 2 minutes if broker is unavailable and retry. 
+            # sleep for 2 minutes if broker is unavailable and retry.
             # Make this value configurable?
             # this feels like a dirty hack. Is there some other way to do this?
             time.sleep(120)
         except OSError:
-            # sleep for 10 minutes if broker is not reachable, i.e. network is down 
+            # sleep for 10 minutes if broker is not reachable, i.e. network is down
             # Make this value configurable?
             # this feels like a dirty hack. Is there some other way to do this?
             time.sleep(600)
@@ -229,7 +230,7 @@ if __name__ == '__main__':
     except Exception as e:
         write_message_to_console('Error while attempting to send config to MQTT host: ' + str(e))
         exit()
-    try:    
+    try:
         update_sensors()
     except Exception as e:
         write_message_to_console('Error while attempting to perform inital sensor update: ' + str(e))
