@@ -9,6 +9,12 @@ import platform
 import subprocess
 import datetime as dt
 import sys
+import os
+# import os.path
+
+class ProperyBag(dict):
+    def to_string(self, device_name:str):
+        return str.replace(str.replace(str.replace(self.__str__(), "{device_name}", device_name), "{", ''), "}", '')
 
 # Only needed if using alternate method of obtaining CPU temperature (see commented out code for approach)
 #from os import walk
@@ -29,10 +35,21 @@ try:
 except ImportError:
     apt_disabled = True
 
+isDockerized = bool(os.getenv('YES_YOU_ARE_IN_A_CONTAINER', False))
+isOsRelease = os.path.isfile('/app/host/os-release')
+isHostname = os.path.isfile('/app/host/hostname')
+isDeviceTreeModel = os.path.isfile('/app/host/proc/device-tree/model')
+isSystemSensorPipe = os.path.isfile('/app/host/system_sensor_pipe')
+
+vcgencmd   = "vcgencmd"
+os_release = "/etc/os-release"
+if isDockerized:
+    os_release = "/app/host/os-release" if isOsRelease else '/etc/os-release'
+    vcgencmd   = "/opt/vc/bin/vcgencmd"
 
 # Get OS information
 OS_DATA = {}
-with open('/etc/os-release') as f:
+with open(os_release) as f:
     for line in f.readlines():
         row = line.strip().split("=")
         OS_DATA[row[0]] = row[1].strip('"')
@@ -108,6 +125,14 @@ def get_temp():
             #                 break
             # temp = str(int(subprocess.check_output(['cat', base_dir + zone_dir + '/temp']).decode('UTF-8')) / 1000)
 
+# display power method depending on system distro
+def get_display_status():
+    if "rasp" in OS_DATA["ID"]:
+        reading = subprocess.check_output([vcgencmd, "display_power"]).decode("UTF-8")
+        display_state = str(re.findall("^display_power=(?P<display_state>[01]{1})$", reading)[0])
+    else:
+        display_state = "Unknown"
+    return display_state
 
 # Replaced with psutil method - does this not work fine?
 def get_clock_speed():
@@ -179,20 +204,52 @@ def get_rpi_power_status():
     return 'ON' if _underVoltage.get() else 'OFF'
 
 def get_hostname():
-    return socket.gethostname()
+    if isDockerized and isHostname:
+        host = subprocess.check_output(["cat", "/app/host/hostname"]).decode("UTF-8").strip()
+    else:
+        host = socket.gethostname()
+    return host
 
 def get_host_ip():
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.connect(('8.8.8.8', 80))
-        return sock.getsockname()[0]
-    except socket.error:
+    if isDockerized and isSystemSensorPipe:
+        return get_container_host_ip()
+    else:
         try:
-            return socket.gethostbyname(socket.gethostname())
-        except socket.gaierror:
-            return '127.0.0.1'
-    finally:
-        sock.close()
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.connect(('8.8.8.8', 80))
+            return sock.getsockname()[0]
+        except socket.error:
+            try:
+                return socket.gethostbyname(socket.gethostname())
+            except socket.gaierror:
+                return '127.0.0.1'
+        finally:
+            sock.close()
+
+def get_container_host_ip():
+     data = subprocess.check_output(["cat", "/app/host/system_sensor_pipe"]).decode("UTF-8")
+     ip = ""
+     for line in data.split('\n'):
+         mo = re.match ("^.{2}(?P<id>.{2}).{2}(?P<addr>.{8})..{4} .{8}..{4} (?P<status>.{2}).*|", line)
+         if mo and mo.group("id") != "sl":
+             status = int(mo.group("status"), 16)
+             if status == 1: # connection established
+                 ip = hex2addr(mo.group("addr"))
+                 break
+     return ip
+
+def hex2addr(hex_addr):
+    l = len(hex_addr)
+    first = True
+    ip = ""
+    for i in range(l // 2):
+        if (first != True):
+            ip = "%s." % ip
+        else:
+            first = False
+        ip = ip + ("%d" % int(hex_addr[-2:], 16))
+        hex_addr = hex_addr[:-2]
+    return ip
 
 def get_host_os():
     try:
@@ -217,7 +274,7 @@ def external_drive_base(drive, drive_path) -> dict:
         }
 
 sensors = {
-          'temperature': 
+          'temperature':
                 {'name':'Temperature',
                  'class': 'temperature',
 		 'state_class':'measurement',
@@ -225,6 +282,21 @@ sensors = {
                  'icon': 'thermometer',
                  'sensor_type': 'sensor',
                  'function': get_temp},
+          'display':
+                {'name':'Display Switch',
+                 'icon': 'monitor',
+                 'sensor_type': 'switch',
+                 'function': get_display_status,
+                 'prop': ProperyBag({
+                     'availability_topic' : "system-sensors/sensor/{device_name}/availability",
+                     'command_topic'      : 'system-sensors/sensor/{device_name}/command',
+                     'state_topic'        : 'system-sensors/sensor/{device_name}/state',
+                     'value_template'     : '{{value_json.display}}',
+                     'state_off'          : '0',
+                     'state_on'           : '1',
+                     'payload_off'        : 'display_off',
+                     'payload_on'         : 'display_on',
+                 })},
           'clock_speed':
                 {'name':'Clock Speed',
                  'state_class':'measurement',
@@ -331,12 +403,12 @@ sensors = {
                  'icon': 'clock-check',
                  'sensor_type': 'sensor',
                  'function': get_last_message},
-          'updates': 
+          'updates':
                 {'name':'Updates',
                  'icon': 'cellphone-arrow-down',
                  'sensor_type': 'sensor',
                  'function': get_updates},
-          'wifi_strength': 
+          'wifi_strength':
                 {'class': 'signal_strength',
                  'state_class':'measurement',
                  'name':'Wifi Strength',
@@ -344,10 +416,11 @@ sensors = {
                  'icon': 'wifi',
                  'sensor_type': 'sensor',
                  'function': get_wifi_strength},
-          'wifi_ssid': 
+          'wifi_ssid':
                 {'class': 'signal_strength',
                  'name':'Wifi SSID',
                  'icon': 'wifi',
                  'sensor_type': 'sensor',
                  'function': get_wifi_ssid},
           }
+
