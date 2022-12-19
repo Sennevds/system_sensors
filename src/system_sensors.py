@@ -223,8 +223,9 @@ if __name__ == '__main__':
 
     devicename = settings['devicename'].replace(' ', '').lower()
     deviceNameDisplay = settings['devicename']
-    deviceModel = get_host_model()
     deviceManufacturer = "RPI Foundation" if "rasp" in OS_DATA["ID"] else OS_DATA['NAME']
+    deviceModel = get_host_model()
+    
 
     mqttClient = mqtt.Client(client_id=settings['client_id'])
     mqttClient.on_connect = on_connect                      #attach function to callback
