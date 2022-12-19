@@ -78,11 +78,12 @@ def send_config_message(mqttClient):
                             + f'"state_topic":"system-sensors/sensor/{devicename}/state",'
                             + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
                             + f'"value_template":"{{{{value_json.{sensor}}}}}",'
-                            + f'"unique_id":"{devicename}_sensor_{sensor}",'
+                            + f'"unique_id":"{devicename}_{attr["sensor_type"]}_{sensor}",'
                             + f'"availability_topic":"system-sensors/sensor/{devicename}/availability",'
                             + f'"device":{{"identifiers":["{devicename}_sensor"],'
-                            + f'"name":"{deviceNameDisplay} Sensors","model":"RPI {deviceNameDisplay}", "manufacturer":"RPI"}}'
+                            + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
                             + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
+                    		    + (f',{attr["prop"]}' if 'prop' in attr else '')
                             + f'}}'
                             ),
                     qos=1,
@@ -114,6 +115,8 @@ def set_defaults(settings):
             settings['sensors'][sensor] = True
     if 'external_drives' not in settings['sensors'] or settings['sensors']['external_drives'] is None:
         settings['sensors']['external_drives'] = {}
+    if "rasp" not in OS_DATA["ID"]:
+        settings['sensors']['display'] = False
 
     # 'settings' argument is local, so needs to be returned to overwrite the one in the main function
     return settings
@@ -153,11 +156,27 @@ def add_drives():
                 # Skip drives not found. Could be worth sending "not mounted" as the value if users want to track mount status.
                 print(drive + ' is not mounted to host. Check config or host drive mount settings.')
 
+# host model method depending on system distro
+def get_host_model():
+    if "rasp" in OS_DATA["ID"] and isDockerized and isDeviceTreeModel:
+        model = subprocess.check_output(["cat", "/app/host/proc/device-tree/model"]).decode("UTF-8").strip()
+        # remove a weird character breaking the json in mqtt explorer
+        model = model[:-1]
+    else:
+        # todo find a solid way to determine sbc manufacture
+        model = f'{deviceManufacturer} {deviceNameDisplay}'
+    return model
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         write_message_to_console('Connected to broker')
+        print("subscribing : hass/status")
         client.subscribe('hass/status')
+        print("subscribing : " + f"system-sensors/sensor/{devicename}/availability")
         mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
+        print("subscribing : " + f"system-sensors/sensor/{devicename}/command")
+        client.subscribe(f"system-sensors/sensor/{devicename}/command")#subscribe
+        client.publish(f"system-sensors/sensor/{devicename}/command", "setup", retain=True)
     elif rc == 5:
         write_message_to_console('Authentication failed.\n Exiting.')
         sys.exit()
@@ -166,8 +185,14 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     print (f'Message received: {message.payload.decode()}'  )
-    if(message.payload.decode() == 'online'):
+    if message.payload.decode() == 'online':
         send_config_message(client)
+    elif message.payload.decode() == "display_on":
+        reading = subprocess.check_output([vcgencmd, "display_power", "1"]).decode("UTF-8")
+        update_sensors()
+    elif message.payload.decode() == "display_off":
+        reading = subprocess.check_output([vcgencmd, "display_power", "0"]).decode("UTF-8")
+        update_sensors()
 
 
 if __name__ == '__main__':
@@ -189,7 +214,7 @@ if __name__ == '__main__':
 
     # Make settings file keys all lowercase
     settings = {k.lower(): v for k,v in settings.items()}
-    # Prep settings with defaults if keys missing
+    # Prep settings with defaults if keys missingf
     settings = set_defaults(settings)
     # Check for settings that will prevent the script from communicating with MQTT broker or break the script
     check_settings(settings)
@@ -198,6 +223,8 @@ if __name__ == '__main__':
 
     devicename = settings['devicename'].replace(' ', '').lower()
     deviceNameDisplay = settings['devicename']
+    deviceModel = get_host_model()
+    deviceManufacturer = "RPI Foundation" if "rasp" in OS_DATA["ID"] else OS_DATA['NAME']
 
     mqttClient = mqtt.Client(client_id=settings['client_id'])
     mqttClient.on_connect = on_connect                      #attach function to callback
