@@ -85,14 +85,14 @@ def get_temp():
     # Utilising psutil for temp reading on ARM arch
     try:
         t = psutil.sensors_temperatures()
-        for x in ['cpu-thermal', 'cpu_thermal', 'coretemp', 'soc_thermal']:
+        for x in ['cpu-thermal', 'cpu_thermal', 'coretemp', 'soc_thermal', 'k10temp']:
             if x in t:
                 temp = t[x][0].current
                 break
     except Exception as e:
             print('Could not establish CPU temperature reading: ' + str(e))
             raise
-    return round(temp, 1)
+    return round(temp, 1) if temp != 'Unknown' else temp
 
             # Option to use thermal_zone readings instead of psutil
 
