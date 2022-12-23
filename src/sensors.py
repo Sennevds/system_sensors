@@ -147,6 +147,25 @@ def get_disk_usage(path):
         print('Error while trying to obtain disk usage from ' + str(path) + ' with exception: ' + str(e))
         return None # Changed to return None for handling exception at function call location
 
+def get_zpool_use(pool):
+    try:
+        zpool_percentage = str(subprocess.check_output(
+            [
+                '/usr/sbin/zpool',
+                'list',
+                '-H',
+                '-o',
+                'capacity',
+                '-p',
+                pool
+            ], timeout=2
+        ).decode('utf-8')).strip('\n')
+        return zpool_percentage
+    except Exception as e:
+        print('Error while trying to obtain zpool usage from ' +
+              str(pool) + ' with exception: ' + str(e))
+        return None  # Changed to return None for handling exception at function call location
+
 def get_memory_usage():
     return str(psutil.virtual_memory().percent)
 
@@ -271,6 +290,16 @@ def external_drive_base(drive, drive_path) -> dict:
         'icon': 'harddisk',
         'sensor_type': 'sensor',
         'function': lambda: get_disk_usage(f'{drive_path}')
+        }
+
+# Builds a zpool entry to fix incorrect usage reporting
+def zpool_base(pool) -> dict:
+    return {
+        'name': f'Zpool Use {pool}',
+        'unit': '%',
+        'icon': 'harddisk',
+        'sensor_type': 'sensor',
+        'function': lambda: get_zpool_use(f'{pool}')
         }
 
 sensors = {

@@ -33,3 +33,5 @@ sensors:
   external_drives:
     # Only add mounted drives here, e.g.:
     # Drive1: /media/storage
+    # For ZFS Pools use the format:
+    # pool-name: /mount-point
