@@ -1,6 +1,6 @@
 #!/bin/bash
 USER=$1
-HOST=$3
+HOST=$2
 read -s -p "MQTT Password: " PASS
 echo
 DEVICENAME=$(hostname)
@@ -8,11 +8,18 @@ TIMEZONE=$(timedatectl |grep "Time zone"|awk '{print $3}')
 
 echo "update and install deps"
 apt update
-apt install -y curl python3 python3-pip python3-dev python3-apt
+apt install -y curl python3 python3-pip python3-dev python3-apt python3-venv
 
 echo "Create group and user systemsensors"
 useradd --system --no-create-home --shell=/sbin/nologin systemsensors
 
+echo "Creating venv"
+mkdir -p  /opt/systemsensors/
+# chmod 777 /opt/systemsensors
+python3 -m venv --system-site-packages /opt/systemsensors/venv
+which python
+source /opt/systemsensors/venv/bin/activate
+which python
 echo "Install pip requirements"
 
 curl -o /tmp/requirements.txt https://raw.githubusercontent.com/benmepham/system_sensors/master/requirements.txt
@@ -68,7 +75,7 @@ After=multi-user.target
 [Service]
 User=systemsensors
 Type=idle
-ExecStart=/usr/bin/python3 /opt/systemsensors/system_sensors.py /opt/systemsensors/settings.yaml
+ExecStart=/opt/systemsensors/venv/bin/python3 /opt/systemsensors/system_sensors.py /opt/systemsensors/settings.yaml
 
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/system_sensors.service
