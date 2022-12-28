@@ -151,7 +151,7 @@ def get_memory_usage():
     return str(psutil.virtual_memory().percent)
 
 def get_load(arg):
-    return psutil.getloadavg()[arg] / psutil.cpu_count() * 100
+    return round(psutil.getloadavg()[arg] / psutil.cpu_count() * 100, 1)
 
 def get_net_data(arg):
     global old_net_data
