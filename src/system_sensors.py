@@ -142,13 +142,27 @@ def check_settings(settings):
     if 'power_integer_state' in settings:
         write_message_to_console('power_integer_state is deprecated please remove this option power state is now a binary_sensor!')
 
+def check_zfs(mount_point):
+    for disk in psutil.disk_partitions():
+        if disk.mountpoint == mount_point and disk.fstype == 'zfs':
+            return True
+
 def add_drives():
     drives = settings['sensors']['external_drives']
     if drives is not None:
         for drive in drives:
             drive_path = settings['sensors']['external_drives'][drive]
-            usage = get_disk_usage(drive_path)
-            if usage:
+            if check_zfs(drive_path):
+                usage = get_zpool_use(drive)
+                zfs = True
+            else:
+                usage = get_disk_usage(drive_path)
+                zfs = False
+            if usage and zfs:
+                sensors[f'zpool_use_{drive.lower()}'] = zpool_base(drive)
+                # Add drive to list with formatted name, for when checking sensors against settings items
+                external_drives.append(f'zpool_use_{drive.lower()}')
+            elif usage:
                 sensors[f'disk_use_{drive.lower()}'] = external_drive_base(drive, drives[drive])
                 # Add drive to list with formatted name, for when checking sensors against settings items
                 external_drives.append(f'disk_use_{drive.lower()}')
