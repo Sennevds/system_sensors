@@ -10,6 +10,7 @@ import subprocess
 import datetime as dt
 import sys
 import os
+import shutil
 # import os.path
 
 class ProperyBag(dict):
@@ -148,10 +149,12 @@ def get_disk_usage(path):
         return None # Changed to return None for handling exception at function call location
 
 def get_zpool_use(pool):
+    zpool_locations = ['/usr/sbin/zpool', '/sbin/zpool']
+    zpool_binary = shutil.which("zpool") or next(filter(lambda l: os.path.isfile(l), zpool_locations), None)
     try:
         zpool_percentage = str(subprocess.check_output(
             [
-                '/usr/sbin/zpool',
+                zpool_binary,
                 'list',
                 '-H',
                 '-o',
