@@ -52,8 +52,9 @@ if isDockerized:
 OS_DATA = {}
 with open(os_release) as f:
     for line in f.readlines():
-        row = line.strip().split("=")
-        OS_DATA[row[0]] = row[1].strip('"')
+	if not line in ['\n', '\r\n']:
+            row = line.strip().split("=")
+            OS_DATA[row[0]] = row[1].strip('"')
 
 old_net_data = psutil.net_io_counters()
 previous_time = time.time() - 10
