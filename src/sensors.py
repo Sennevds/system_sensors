@@ -103,34 +103,29 @@ def get_updates():
     cache.upgrade()
     return str(cache.get_changes().__len__())
 
+def get_cpu_temp_sensor_name():
+    try:
+        # Utilising psutil for temp reading on ARM arch
+        temps = psutil.sensors_temperatures()
+        for name in ['cpu-thermal', 'cpu_thermal', 'coretemp', 'soc_thermal', 'k10temp']:
+            if name in temps:
+                return name
+    except Exception as e:
+        print('Could not determine CPU temperature: ' + str(e))
+    print("Cannot find CPU temperature. Might need manual additional_temperatures settings.")
+    return None
+
 # Temperature method depending on system distro
-def get_temp():
+def get_temp(name):
     temp = 'Unknown'
-    # Utilising psutil for temp reading on ARM arch
     try:
         t = psutil.sensors_temperatures()
-        for x in ['cpu-thermal', 'cpu_thermal', 'coretemp', 'soc_thermal', 'k10temp']:
-            if x in t:
-                temp = t[x][0].current
-                break
+        if (name in t):
+            temp = t[name][0].current
     except Exception as e:
-            print('Could not establish CPU temperature reading: ' + str(e))
-            raise
+        print(f'Could not establish {name} temperature reading: ' + str(e))
+        raise
     return round(temp, 1) if temp != 'Unknown' else temp
-
-            # Option to use thermal_zone readings instead of psutil
-
-            # base_dir = '/sys/class/thermal/'
-            # zone_dir = ''
-            # print('Could not cpu_thermal property. Checking thermal zone for x86 architecture')
-            # for root, dir, files in walk(base_dir):
-            #     for d in dir:
-            #         if 'thermal_zone' in d:
-            #             temp_type = str(subprocess.check_output(['cat', base_dir + d + '/type']).decode('UTF-8'))
-            #             if 'x86' in temp_type:
-            #                 zone_dir = d
-            #                 break
-            # temp = str(int(subprocess.check_output(['cat', base_dir + zone_dir + '/temp']).decode('UTF-8')) / 1000)
 
 # display power method depending on system distro
 def get_display_status():
@@ -309,6 +304,15 @@ def get_host_arch():
     except:
         return 'Unknown'
 
+def additional_temperature_base(name) -> dict:
+    return {
+        'name': f'Temperature {name}',
+        'unit': '°C',
+        'icon': 'thermometer',
+        'sensor_type': 'sensor',
+        'function': lambda: get_temp(name)
+        }
+
 # Builds an external drive entry to fix incorrect usage reporting
 def external_drive_base(drive, drive_path) -> dict:
     return {
@@ -329,6 +333,7 @@ def zpool_base(pool) -> dict:
         'function': lambda: get_zpool_use(f'{pool}')
         }
 
+cpuTempName = get_cpu_temp_sensor_name()
 sensors = {
           'temperature':
                 {'name':'Temperature',
@@ -337,7 +342,7 @@ sensors = {
                  'unit': '°C',
                  'icon': 'thermometer',
                  'sensor_type': 'sensor',
-                 'function': get_temp},
+                 'function': lambda: get_temp(cpuTempName)},
           'display':
                 {'name':'Display Switch',
                  'icon': 'monitor',
