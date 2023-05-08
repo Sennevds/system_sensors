@@ -52,7 +52,7 @@ if isDockerized:
 OS_DATA = {}
 with open(os_release) as f:
     for line in f.readlines():
-	if not line in ['\n', '\r\n']:
+        if not line in ['\n', '\r\n']:
             row = line.strip().split("=")
             OS_DATA[row[0]] = row[1].strip('"')
 
