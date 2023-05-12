@@ -450,8 +450,7 @@ sensors = {
                  'sensor_type': 'sensor',
                  'function': get_wifi_strength},
           'wifi_ssid':
-                {'class': 'signal_strength',
-                 'name':'Wifi SSID',
+                {'name':'Wifi SSID',
                  'icon': 'wifi',
                  'sensor_type': 'sensor',
                  'function': get_wifi_ssid},
