@@ -73,7 +73,7 @@ def send_config_message(mqttClient):
                     topic=f'homeassistant/{attr["sensor_type"]}/{devicename}/{sensor}/config',
                     payload = (f'{{'
                             + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
-			    + (f'"state_class":"{attr["state_class"]}",' if 'state_class' in attr else '')
+			                + (f'"state_class":"{attr["state_class"]}",' if 'state_class' in attr else '')
                             + f'"name":"{deviceNameDisplay} {attr["name"]}",'
                             + f'"state_topic":"system-sensors/sensor/{devicename}/state",'
                             + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
@@ -83,10 +83,10 @@ def send_config_message(mqttClient):
                             + f'"device":{{"identifiers":["{devicename}_sensor"],'
                             + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
                             + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
-                    		    + (f',{attr["prop"]}' if 'prop' in attr else '')
+                            + (f',{attr["prop"].to_string(devicename)}' if 'prop' in attr else '')
                             + f'}}'
                             ),
-                    qos=1,
+                    qos=1,                                                                      
                     retain=True,
                 )
         except Exception as e:
