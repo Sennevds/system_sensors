@@ -10,6 +10,7 @@ import subprocess
 import datetime as dt
 import sys
 import os
+import shutil
 # import os.path
 
 class ProperyBag(dict):
@@ -51,8 +52,9 @@ if isDockerized:
 OS_DATA = {}
 with open(os_release) as f:
     for line in f.readlines():
-        row = line.strip().split("=")
-        OS_DATA[row[0]] = row[1].strip('"')
+        if not line in ['\n', '\r\n']:
+            row = line.strip().split("=")
+            OS_DATA[row[0]] = row[1].strip('"')
 
 old_net_data = psutil.net_io_counters()
 previous_time = time.time() - 10
@@ -148,10 +150,12 @@ def get_disk_usage(path):
         return None # Changed to return None for handling exception at function call location
 
 def get_zpool_use(pool):
+    zpool_locations = ['/usr/sbin/zpool', '/sbin/zpool']
+    zpool_binary = shutil.which("zpool") or next(filter(lambda l: os.path.isfile(l), zpool_locations), None)
     try:
         zpool_percentage = str(subprocess.check_output(
             [
-                '/usr/sbin/zpool',
+                zpool_binary,
                 'list',
                 '-H',
                 '-o',
@@ -170,7 +174,7 @@ def get_memory_usage():
     return str(psutil.virtual_memory().percent)
 
 def get_load(arg):
-    return psutil.getloadavg()[arg]
+    return round(psutil.getloadavg()[arg] / psutil.cpu_count() * 100, 1)
 
 def get_net_data(arg):
     global old_net_data
@@ -306,7 +310,7 @@ sensors = {
           'temperature':
                 {'name':'Temperature',
                  'class': 'temperature',
-		 'state_class':'measurement',
+                 'state_class':'measurement',
                  'unit': '°C',
                  'icon': 'thermometer',
                  'sensor_type': 'sensor',
@@ -355,21 +359,21 @@ sensors = {
                  'function': get_cpu_usage},
           'load_1m':
                 {'name': 'Load 1m',
-                 'unit': 'processes',
+                 'unit': '%',
                  'state_class':'measurement',
                  'icon': 'cpu-64-bit',
                  'sensor_type': 'sensor',
                  'function': lambda: get_load(0)},
           'load_5m':
                 {'name': 'Load 5m',
-                 'unit': 'processes',
+                 'unit': '%',
                  'state_class':'measurement',
                  'icon': 'cpu-64-bit',
                  'sensor_type': 'sensor',
                  'function': lambda: get_load(1)},
           'load_15m':
                 {'name': 'Load 15m',
-                 'unit': 'processes',
+                 'unit': '%',
                  'state_class':'measurement',
                  'icon': 'cpu-64-bit',
                  'sensor_type': 'sensor',
@@ -446,8 +450,7 @@ sensors = {
                  'sensor_type': 'sensor',
                  'function': get_wifi_strength},
           'wifi_ssid':
-                {'class': 'signal_strength',
-                 'name':'Wifi SSID',
+                {'name':'Wifi SSID',
                  'icon': 'wifi',
                  'sensor_type': 'sensor',
                  'function': get_wifi_ssid},
