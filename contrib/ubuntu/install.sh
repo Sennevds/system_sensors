@@ -21,13 +21,13 @@ python3 -m venv --system-site-packages /opt/systemsensors/venv
 source /opt/systemsensors/venv/bin/activate
 
 echo "Install pip requirements"
-curl -o /tmp/requirements.txt https://raw.githubusercontent.com/benmepham/system_sensors/master/requirements.txt
+curl -o /tmp/requirements.txt https://raw.githubusercontent.com/Sennevds/system_sensors/master/requirements.txt
 pip3 install -r /tmp/requirements.txt
 
 echo "Install system_sensors"
 mkdir -p  /opt/systemsensors/
-curl -o /opt/systemsensors/sensors.py https://raw.githubusercontent.com/benmepham/system_sensors/master/src/sensors.py
-curl -o /opt/systemsensors/system_sensors.py  https://raw.githubusercontent.com/benmepham/system_sensors/master/src/system_sensors.py
+curl -o /opt/systemsensors/sensors.py https://raw.githubusercontent.com/Sennevds/system_sensors/master/src/sensors.py
+curl -o /opt/systemsensors/system_sensors.py  https://raw.githubusercontent.com/Sennevds/system_sensors/master/src/system_sensors.py
 
 echo "mqtt:
   hostname: $HOST
