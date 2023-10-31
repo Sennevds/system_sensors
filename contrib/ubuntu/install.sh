@@ -8,7 +8,7 @@ echo
 DEVICENAME=$(hostname)
 TIMEZONE=$(timedatectl |grep "Time zone"|awk '{print $3}')
 
-echo "update and install deps"
+echo "update and install dependencies"
 apt update
 apt install -y curl python3 python3-pip python3-dev python3-apt python3-venv
 
