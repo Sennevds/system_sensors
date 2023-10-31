@@ -1,9 +1,14 @@
 #!/bin/bash
+set -e
 
-echo "update and install any new deps"
+echo "Update and install any new dependencies"
 apt update
 apt install -y curl python3 python3-pip python3-dev python3-apt
 
+
+echo "Activating venv"
+source /opt/systemsensors/venv/bin/activate
+which python
 echo "Install any new pip requirements"
 
 curl -o /tmp/requirements.txt https://raw.githubusercontent.com/benmepham/system_sensors/master/requirements.txt

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 USER=$1
 HOST=$2
 read -s -p "MQTT Password: " PASS
@@ -15,18 +17,15 @@ useradd --system --no-create-home --shell=/sbin/nologin systemsensors
 
 echo "Creating venv"
 mkdir -p  /opt/systemsensors/
-# chmod 777 /opt/systemsensors
 python3 -m venv --system-site-packages /opt/systemsensors/venv
-which python
 source /opt/systemsensors/venv/bin/activate
-which python
-echo "Install pip requirements"
 
+echo "Install pip requirements"
 curl -o /tmp/requirements.txt https://raw.githubusercontent.com/benmepham/system_sensors/master/requirements.txt
 pip3 install -r /tmp/requirements.txt
 
+echo "Install system_sensors"
 mkdir -p  /opt/systemsensors/
-
 curl -o /opt/systemsensors/sensors.py https://raw.githubusercontent.com/benmepham/system_sensors/master/src/sensors.py
 curl -o /opt/systemsensors/system_sensors.py  https://raw.githubusercontent.com/benmepham/system_sensors/master/src/system_sensors.py
 
