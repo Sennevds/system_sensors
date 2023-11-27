@@ -250,6 +250,11 @@ if __name__ == '__main__':
             settings['mqtt']['user'], settings['mqtt']['password']
         )
 
+    if 'ca_certs' in settings['tls']:
+      mqttClient.tls_set(
+        ca_certs=settings['tls']['ca_certs'], certfile=settings['tls']['certfile'], keyfile=settings['tls']['keyfile']
+      )
+
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
