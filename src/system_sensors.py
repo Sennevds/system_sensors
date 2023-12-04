@@ -184,8 +184,8 @@ def get_host_model():
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         write_message_to_console('Connected to broker')
-        print("subscribing : hass/status")
-        client.subscribe('hass/status')
+        print("subscribing : homeassistant/status")
+        client.subscribe('homeassistant/status')
         print("subscribing : " + f"system-sensors/sensor/{devicename}/availability")
         mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
         print("subscribing : " + f"system-sensors/sensor/{devicename}/command")
