@@ -11,11 +11,14 @@ import datetime as dt
 import sys
 import os
 import shutil
+import json
 # import os.path
 
-class ProperyBag(dict):
+class PropertyBag(dict):
     def to_string(self, device_name:str):
-        return str.replace(str.replace(str.replace(self.__str__(), "{device_name}", device_name), "{", ''), "}", '')
+        for key in self.keys():
+            self[key] = str.replace(self[key], "{device_name}", device_name)
+        return str.replace(str.replace(json.dumps(self), "{", ''), "}", '')
 
 # Only needed if using alternate method of obtaining CPU temperature (see commented out code for approach)
 #from os import walk
@@ -320,11 +323,8 @@ sensors = {
                  'icon': 'monitor',
                  'sensor_type': 'switch',
                  'function': get_display_status,
-                 'prop': ProperyBag({
-                     'availability_topic' : "system-sensors/sensor/{device_name}/availability",
+                 'prop': PropertyBag({
                      'command_topic'      : 'system-sensors/sensor/{device_name}/command',
-                     'state_topic'        : 'system-sensors/sensor/{device_name}/state',
-                     'value_template'     : '{{value_json.display}}',
                      'state_off'          : '0',
                      'state_on'           : '1',
                      'payload_off'        : 'display_off',
