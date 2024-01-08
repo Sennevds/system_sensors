@@ -324,10 +324,7 @@ sensors = {
                  'sensor_type': 'switch',
                  'function': get_display_status,
                  'prop': PropertyBag({
-                     'availability_topic' : "system-sensors/sensor/{device_name}/availability",
                      'command_topic'      : 'system-sensors/sensor/{device_name}/command',
-                     'state_topic'        : 'system-sensors/sensor/{device_name}/state',
-                     'value_template'     : '{{value_json.display}}',
                      'state_off'          : '0',
                      'state_on'           : '1',
                      'payload_off'        : 'display_off',
