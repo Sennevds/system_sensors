@@ -17,6 +17,7 @@ mqttClient = None
 global poll_interval
 devicename = None
 settings = {}
+additional_temperatures = []
 external_drives = []
 
 class ProgramKilled(Exception):
@@ -49,7 +50,7 @@ def update_sensors():
     payload_str = f'{{'
     for sensor, attr in sensors.items():
         # Skip sensors that have been disabled or are missing
-        if sensor in external_drives or (settings['sensors'][sensor] is not None and settings['sensors'][sensor] == True):
+        if is_sensor_enabled(sensor):
             payload_str += f'"{sensor}": "{attr["function"]()}",'
     payload_str = payload_str[:-1]
     payload_str += f'}}'
@@ -67,8 +68,7 @@ def send_config_message(mqttClient):
 
     for sensor, attr in sensors.items():
         try:
-            # Added check in case sensor is an external drive, which is nested in the config
-            if sensor in external_drives or settings['sensors'][sensor]:
+            if is_sensor_enabled(sensor):
                 mqttClient.publish(
                     topic=f'homeassistant/{attr["sensor_type"]}/{devicename}/{sensor}/config',
                     payload = (f'{{'
@@ -113,6 +113,8 @@ def set_defaults(settings):
     for sensor in sensors:
         if sensor not in settings['sensors']:
             settings['sensors'][sensor] = True
+    if 'additional_temperatures' not in settings['sensors'] or settings['sensors']['additional_temperatures'] is None:
+        settings['sensors']['additional_temperatures'] = {}
     if 'external_drives' not in settings['sensors'] or settings['sensors']['external_drives'] is None:
         settings['sensors']['external_drives'] = {}
     if "rasp" not in OS_DATA["ID"]:
@@ -170,6 +172,17 @@ def add_drives():
                 # Skip drives not found. Could be worth sending "not mounted" as the value if users want to track mount status.
                 print(drive + ' is not mounted to host. Check config or host drive mount settings.')
 
+def add_temperatures():
+    temperatures = settings['sensors']['additional_temperatures']
+    if temperatures is not None:
+        for temperatureName in temperatures:
+            usage = get_temp(temperatureName)
+            if usage:
+                sensors[f'temperature_{temperatureName}'] = additional_temperature_base(temperatureName)
+                additional_temperatures.append(f'temperature_{temperatureName}')
+            else:
+                print(f'Temperature {temperatureName} is not found. Please check with the output of psutil.sensors_temperatures()')
+
 # host model method depending on system distro
 def get_host_model():
     if "rasp" in OS_DATA["ID"] and isDockerized and isDeviceTreeModel:
@@ -208,6 +221,8 @@ def on_message(client, userdata, message):
         reading = subprocess.check_output([vcgencmd, "display_power", "0"]).decode("UTF-8")
         update_sensors()
 
+def is_sensor_enabled(sensor):
+    return sensor in additional_temperatures or sensor in external_drives or settings['sensors'][sensor] == True
 
 if __name__ == '__main__':
     try:
@@ -234,6 +249,7 @@ if __name__ == '__main__':
     check_settings(settings)
 
     add_drives()
+    add_temperatures()
 
     devicename = settings['devicename'].replace(' ', '').lower()
     deviceNameDisplay = settings['devicename']

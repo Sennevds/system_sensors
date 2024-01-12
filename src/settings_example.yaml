@@ -35,3 +35,7 @@ sensors:
     # Drive1: /media/storage
     # For ZFS Pools use the format:
     # pool-name: /mount-point
+  additional_temperatures:
+    # Use psutil.sensors_temperatures() to find out the name, e.g.:
+    # - cpu
+    # - bms
