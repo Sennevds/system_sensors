@@ -59,8 +59,10 @@ with open(os_release) as f:
             row = line.strip().split("=")
             OS_DATA[row[0]] = row[1].strip('"')
 
-old_net_data = psutil.net_io_counters()
-previous_time = time.time() - 10
+old_net_data_tx = psutil.net_io_counters()[0]
+previous_time_tx = time.time() - 10
+old_net_data_rx = psutil.net_io_counters()[1]
+previous_time_rx = time.time() - 10
 UTC = pytz.utc
 DEFAULT_TIME_ZONE = None
 
@@ -179,19 +181,29 @@ def get_memory_usage():
 def get_load(arg):
     return round(psutil.getloadavg()[arg] / psutil.cpu_count() * 100, 1)
 
-def get_net_data(arg):
-    global old_net_data
-    global previous_time
-    current_net_data = psutil.net_io_counters()
+def get_net_data_tx():
+    global old_net_data_tx
+    global previous_time_tx
+    current_net_data = psutil.net_io_counters()[0]
     current_time = time.time()
-    if current_time == previous_time:
+    if current_time == previous_time_tx:
         current_time += 1
-    net_data = (current_net_data[0] - old_net_data[0]) / (current_time - previous_time) * 8 / 1024
-    net_data = (net_data, (current_net_data[1] - old_net_data[1]) / (current_time - previous_time) * 8 / 1024)
-    previous_time = current_time
-    old_net_data = current_net_data
-    net_data = ['%.2f' % net_data[0], '%.2f' % net_data[1]]
-    return net_data[arg]
+    net_data = (current_net_data - old_net_data_tx) * 8 / (current_time - previous_time_tx) / 1024
+    previous_time_tx = current_time
+    old_net_data_tx = current_net_data
+    return f"{net_data:.2f}"
+
+def get_net_data_rx():
+    global old_net_data_rx
+    global previous_time_rx
+    current_net_data = psutil.net_io_counters()[1]
+    current_time = time.time()
+    if current_time == previous_time_rx:
+        current_time += 1
+    net_data = (current_net_data - old_net_data_rx) * 8 / (current_time - previous_time_rx) / 1024
+    previous_time_rx = current_time
+    old_net_data_rx = current_net_data
+    return f"{net_data:.2f}"
 
 def get_cpu_usage():
     return str(psutil.cpu_percent(interval=None))
@@ -384,14 +396,14 @@ sensors = {
                  'unit': 'Kbps',
                  'icon': 'server-network',
                  'sensor_type': 'sensor',
-                 'function': lambda: get_net_data(0)},
+                 'function': get_net_data_tx},
           'net_rx':
                 {'name': 'Network Download',
                  'state_class':'measurement',
                  'unit': 'Kbps',
                  'icon': 'server-network',
                  'sensor_type': 'sensor',
-                 'function': lambda: get_net_data(1)},
+                 'function': get_net_data_rx},
           'swap_usage':
                 {'name':'Swap Usage',
                  'state_class':'measurement',
