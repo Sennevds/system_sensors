@@ -49,8 +49,14 @@ def update_sensors():
     payload_str = f'{{'
     for sensor, attr in sensors.items():
         # Skip sensors that have been disabled or are missing
-        if sensor in external_drives or (settings['sensors'][sensor] is not None and settings['sensors'][sensor] == True):
+        if sensor in external_drives:
             payload_str += f'"{sensor}": "{attr["function"]()}",'
+        elif settings['sensors'][sensor] is not None:
+            if settings['sensors'][sensor] == True:
+                payload_str += f'"{sensor}": "{attr["function"]()}",'
+            elif settings['sensors'][sensor] is not False:
+                payload_str += f'"{sensor}": "{attr["function"](settings["sensors"][sensor])}",'
+
     payload_str = payload_str[:-1]
     payload_str += f'}}'
     mqttClient.publish(

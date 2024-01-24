@@ -17,8 +17,8 @@ sensors:
   load_1m: true
   load_5m: true
   load_15m: true
-  net_tx: true
-  net_rx: true
+  net_tx: "enp1s0" # true for all interfaces, otherwise the name of the interface
+  net_rx: true # true for all interfaces, otherwise the name of the interface
   swap_usage: true
   power_status: true
   last_boot: true

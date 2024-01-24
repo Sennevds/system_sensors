@@ -181,10 +181,14 @@ def get_memory_usage():
 def get_load(arg):
     return round(psutil.getloadavg()[arg] / psutil.cpu_count() * 100, 1)
 
-def get_net_data_tx():
+def get_net_data_tx(interface = True):
     global old_net_data_tx
     global previous_time_tx
-    current_net_data = psutil.net_io_counters()[0]
+    current_net_data = []
+    if type(interface) == str:
+        current_net_data = psutil.net_io_counters(pernic=True)[interface][0]
+    else:
+        current_net_data = psutil.net_io_counters()[0]
     current_time = time.time()
     if current_time == previous_time_tx:
         current_time += 1
@@ -193,10 +197,14 @@ def get_net_data_tx():
     old_net_data_tx = current_net_data
     return f"{net_data:.2f}"
 
-def get_net_data_rx():
+def get_net_data_rx(interface = True):
     global old_net_data_rx
     global previous_time_rx
-    current_net_data = psutil.net_io_counters()[1]
+    current_net_data = []
+    if type(interface) == str:
+        current_net_data = psutil.net_io_counters(pernic=True)[interface][1]
+    else:
+        current_net_data = psutil.net_io_counters()[1]
     current_time = time.time()
     if current_time == previous_time_rx:
         current_time += 1
