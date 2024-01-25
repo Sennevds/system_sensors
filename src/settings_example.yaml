@@ -3,6 +3,10 @@ mqtt:
   port: 1883 #defaults to 1883
   user: test
   password: test
+tls:
+  # ca_certs
+  # certfile
+  # keyfile
 deviceName: test
 client_id: test
 timezone: Europe/Brussels
