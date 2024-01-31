@@ -256,7 +256,7 @@ if __name__ == '__main__':
             settings['mqtt']['user'], settings['mqtt']['password']
         )
 
-    if 'ca_certs' in settings['tls']:
+    if 'tls' in settings and 'ca_certs' in settings['tls']:
       mqttClient.tls_set(
         ca_certs=settings['tls']['ca_certs'], certfile=settings['tls']['certfile'], keyfile=settings['tls']['keyfile']
       )
