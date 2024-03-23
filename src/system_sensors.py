@@ -50,8 +50,14 @@ def update_sensors():
     payload_str = f'{{'
     for sensor, attr in sensors.items():
         # Skip sensors that have been disabled or are missing
-        if sensor in external_drives or (settings['sensors'][sensor] is not None and settings['sensors'][sensor] == True):
+        if sensor in external_drives:
             payload_str += f'"{sensor}": "{attr["function"]()}",'
+        elif settings['sensors'][sensor] is not None:
+            if settings['sensors'][sensor] == True:
+                payload_str += f'"{sensor}": "{attr["function"]()}",'
+            elif settings['sensors'][sensor] is not False:
+                payload_str += f'"{sensor}": "{attr["function"](settings["sensors"][sensor])}",'
+
     payload_str = payload_str[:-1]
     payload_str += f'}}'
     mqttClient.publish(
@@ -73,20 +79,20 @@ def send_config_message(mqttClient):
                 mqttClient.publish(
                     topic=f'homeassistant/{attr["sensor_type"]}/{devicename}/{sensor}/config',
                     payload = (f'{{'
-                            + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
-			    + (f'"state_class":"{attr["state_class"]}",' if 'state_class' in attr else '')
-                            + f'"name":"{deviceNameDisplay} {attr["name"]}",'
-                            + f'"state_topic":"system-sensors/sensor/{devicename}/state",'
-                            + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
-                            + f'"value_template":"{{{{value_json.{sensor}}}}}",'
-                            + f'"unique_id":"{devicename}_{attr["sensor_type"]}_{sensor}",'
-                            + f'"availability_topic":"system-sensors/sensor/{devicename}/availability",'
-                            + f'"device":{{"identifiers":["{devicename}_sensor"],'
-                            + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
-                            + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
-                    		    + (f',{attr["prop"]}' if 'prop' in attr else '')
-                            + f'}}'
-                            ),
+                                + (f'"device_class":"{attr["class"]}",' if 'class' in attr else '')
+                                + (f'"state_class":"{attr["state_class"]}",' if 'state_class' in attr else '')
+                                + f'"name":"{deviceNameDisplay} {attr["name"]}",'
+                                + f'"state_topic":"system-sensors/sensor/{devicename}/state",'
+                                + (f'"unit_of_measurement":"{attr["unit"]}",' if 'unit' in attr else '')
+                                + f'"value_template":"{{{{value_json.{sensor}}}}}",'
+                                + f'"unique_id":"{devicename}_{attr["sensor_type"]}_{sensor}",'
+                                + f'"availability_topic":"system-sensors/sensor/{devicename}/availability",'
+                                + f'"device":{{"identifiers":["{devicename}_sensor"],'
+                                + f'"name":"{deviceNameDisplay} Sensors","model":"{deviceModel}", "manufacturer":"{deviceManufacturer}"}}'
+                                + (f',"icon":"mdi:{attr["icon"]}"' if 'icon' in attr else '')
+                                + (f',{attr["prop"].to_string(devicename)}' if 'prop' in attr else '')
+                                + f'}}'
+                    ),
                     qos=1,
                     retain=True,
                 )
