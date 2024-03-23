@@ -9,6 +9,7 @@ import pathlib
 import argparse
 import threading
 import paho.mqtt.client as mqtt
+import importlib.metadata
 
 from sensors import *
 
@@ -147,6 +148,12 @@ def check_settings(settings):
         settings['sensors']['updates'] = False
     if 'power_integer_state' in settings:
         write_message_to_console('power_integer_state is deprecated please remove this option power state is now a binary_sensor!')
+    # these two may be present or not, but in case they are not, create a default
+    if 'ha_status' not in settings or settings['ha_status'] == '':
+        settings['ha_status'] = 'hass'
+    if 'tls' not in settings:
+        settings['tls'] = {}
+        settings['tls']['ca_certs'] = ''
 
 def check_zfs(mount_point):
     for disk in psutil.disk_partitions():
@@ -190,8 +197,8 @@ def get_host_model():
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         write_message_to_console('Connected to broker')
-        print("subscribing : hass/status")
-        client.subscribe('hass/status')
+        print("subscribing : " + f"{ha_status}/status")
+        client.subscribe(f"{ha_status}/status")
         print("subscribing : " + f"system-sensors/sensor/{devicename}/availability")
         mqttClient.publish(f'system-sensors/sensor/{devicename}/availability', 'online', retain=True)
         print("subscribing : " + f"system-sensors/sensor/{devicename}/command")
@@ -245,9 +252,20 @@ if __name__ == '__main__':
     deviceNameDisplay = settings['devicename']
     deviceManufacturer = "RPI Foundation" if "rasp" in OS_DATA["ID"] else OS_DATA['NAME']
     deviceModel = get_host_model()
+    ha_status = settings['ha_status']
     
 
-    mqttClient = mqtt.Client(client_id=settings['client_id'])
+    # https://eclipse.dev/paho/files/paho.mqtt.python/html/migrations.html
+    # note that with version1, mqttv3 is used and no other migration is made
+    # if paho-mqtt v1.6.x gets removed, a full code migration must be made
+    if importlib.metadata.version("paho-mqtt")[0] == '1':
+       # for paho 1.x clients
+       mqttClient = mqtt.Client(client_id=settings['client_id'])
+    else:
+       # for paho 2.x clients
+       # note that a deprecation warning gets logged 
+       mqttClient = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id=settings['client_id'])
+
     mqttClient.on_connect = on_connect                      #attach function to callback
     mqttClient.on_message = on_message
     mqttClient.will_set(f'system-sensors/sensor/{devicename}/availability', 'offline', retain=True)
@@ -256,7 +274,8 @@ if __name__ == '__main__':
             settings['mqtt']['user'], settings['mqtt']['password']
         )
 
-    if 'tls' in settings and 'ca_certs' in settings['tls']:
+    # if ca_certs is populated, we expect the others have been populated accordingly
+    if settings['tls']['ca_certs'] != '':
       mqttClient.tls_set(
         ca_certs=settings['tls']['ca_certs'], certfile=settings['tls']['certfile'], keyfile=settings['tls']['keyfile']
       )

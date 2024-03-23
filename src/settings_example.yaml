@@ -1,16 +1,17 @@
 mqtt:
   hostname: 127.0.0.1
-  port: 1883 #defaults to 1883
+  port: 1883        # defaults to 1883
   user: test
   password: test
 tls:
-  # ca_certs
-  # certfile
-  # keyfile
+  ca_certs:         # path/file preferrable use directory tls-files
+  certfile:         # path/file preferrable use directory tls-files
+  keyfile:          # path/file preferrable use directory tls-files
 deviceName: test
 client_id: test
+ha_status: hass     # status topic for homeassistant: defaults to hass if key is omitted
 timezone: Europe/Brussels
-update_interval: 60 #Defaults to 60
+update_interval: 60 # Defaults to 60
 sensors:
   temperature: true
   display: true

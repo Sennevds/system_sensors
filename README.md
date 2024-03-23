@@ -51,8 +51,12 @@ You need to have at least **python 3.6** installed to use System Sensors.
 | mqtt:port                       | false    | 1883    | Port of the MQTT broker                                                                                                                         |
 | mqtt:user                       | false    | \       | The userlogin( if defined) for the MQTT broker                                                                                                  |
 | mqtt:password                   | false    | \       | the password ( if defined) for the MQTT broker                                                                                                  |
-| deviceName                      | true     | \       | device name is sent with topic                                                                                                                  |
+| tls                             | false    | \       | Details of TLS settings broker                                                                                                  |
+| tls:ca_certs                    | false    | \       | TLS settings ( if defined) for the MQTT broker                                                                                                  |
+| tls:certfile                    | false    | \       | TLS settings ( if defined) for the MQTT broker                                                                                                  |
+| tls:keyfile                     | false    | \       | TLS settings ( if defined) for the MQTT broker                                                                                                  |
 | client_id                       | true     | \       | client id to connect to the MQTT broker                                                                                                         |
+| ha_status                       | false    | hass    | Status topic for homeassistant, defaults to _hass_ if not set                                                                                      |
 | timezone                        | true     | \       | Your local timezone (you can find the list of timezones here: [time zones](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568)) |
 | power_integer_state(Deprecated) | false    | false   | Deprecated                                                                                                                                      |
 | update_interval                 | false    | 60      | The update interval to send new values to the MQTT broker                                                                                       |
