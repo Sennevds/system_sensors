@@ -115,6 +115,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 system_sensors.service
+src/settings.yaml
 
 # ignore config directory created by docker
 /config
