@@ -16,6 +16,7 @@ sensors:
   temperature: true
   display: true
   clock_speed: true
+  fan_speed: false
   disk_use: true
   memory_use: true
   cpu_usage: true
