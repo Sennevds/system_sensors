@@ -361,6 +361,7 @@ sensors = {
             'fan_speed':
                 {'name': 'Fan Speed',
                  'state_class': 'measurement',
+                 'unit': 'rpm',
                  'icon': 'fan',
                  'sensor_type': 'sensor',
                  'function': get_fan_speed},
