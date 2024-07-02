@@ -132,6 +132,26 @@ def get_temp():
             #                 break
             # temp = str(int(subprocess.check_output(['cat', base_dir + zone_dir + '/temp']).decode('UTF-8')) / 1000)
 
+
+def get_fan_speed():
+    speed = 'Unknown'
+    # Utilising psutil for fan speed reading on ARM arch
+    try:
+        if not hasattr(psutil, "sensors_fans"):
+            raise NotImplementedError("Platform not supported for sensors_fans")
+
+        t = psutil.sensors_fans()
+        # if additional fan names returned by psutil are needed add here (as in get_temp)
+        for x in ['pwmfan', ]:
+            if x in t:
+                speed = t[x][0].current
+                break
+    except (Exception, NotImplementedError) as e:
+        print('Could not establish fan speed reading: ' + str(e))
+        raise
+    return round(speed, 0) if speed != 'Unknown' else speed
+
+
 # display power method depending on system distro
 def get_display_status():
     if "rasp" in OS_DATA["ID"]:
@@ -338,6 +358,13 @@ sensors = {
                  'icon': 'thermometer',
                  'sensor_type': 'sensor',
                  'function': get_temp},
+            'fan_speed':
+                {'name': 'Fan Speed',
+                 'state_class': 'measurement',
+                 'unit': 'rpm',
+                 'icon': 'fan',
+                 'sensor_type': 'sensor',
+                 'function': get_fan_speed},
           'display':
                 {'name':'Display Switch',
                  'icon': 'monitor',

@@ -15,6 +15,7 @@ It currently logs the following data:
 - CPU usage
 - CPU temperature
 - CPU Clock Speed
+- Fan Speed
 - Disk usage
 - Memory usage
 - Power status of the RPI
