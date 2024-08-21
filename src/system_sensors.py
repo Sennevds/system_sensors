@@ -195,8 +195,8 @@ def get_host_model():
         model = f'{deviceManufacturer} {deviceNameDisplay}'
     return model
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
+def on_connect(client, userdata, flags, reason_code, properties):
+    if reason_code == 0:
         write_message_to_console('Connected to broker')
         print("subscribing : " + f"{ha_status}/status")
         client.subscribe(f"{ha_status}/status")
@@ -205,7 +205,7 @@ def on_connect(client, userdata, flags, rc):
         print("subscribing : " + f"system-sensors/sensor/{devicename}/command")
         client.subscribe(f"system-sensors/sensor/{devicename}/command")#subscribe
         client.publish(f"system-sensors/sensor/{devicename}/command", "setup", retain=True)
-    elif rc == 5:
+    elif reason_code == 'Bad user name or password':
         write_message_to_console('Authentication failed.\n Exiting.')
         sys.exit()
     else:
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     else:
        # for paho 2.x clients
        # note that a deprecation warning gets logged 
-       mqttClient = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id=settings['client_id'])
+       mqttClient = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=settings['client_id'])
 
     mqttClient.on_connect = on_connect                      #attach function to callback
     mqttClient.on_message = on_message
