@@ -195,7 +195,7 @@ def get_host_model():
         model = f'{deviceManufacturer} {deviceNameDisplay}'
     return model
 
-def on_connect(client, userdata, flags, reason_code, properties):
+def on_connect(client, userdata, flags, reason_code='', properties=''):
     if reason_code == 0:
         write_message_to_console('Connected to broker')
         print("subscribing : " + f"{ha_status}/status")
