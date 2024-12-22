@@ -105,6 +105,8 @@ def get_updates():
 
 # Temperature method depending on system distro
 def get_temp():
+    # Note that 'Unknown' can be problematic if no temp sensor is found, see get_fan_speed for the reason.
+    # Alternatively, the default can be changed to -273 which is unlikely to happen...
     temp = 'Unknown'
     # Utilising psutil for temp reading on ARM arch
     try:
@@ -134,14 +136,15 @@ def get_temp():
 
 
 def get_fan_speed():
-    speed = 'Unknown'
+    # Formerly the default was 'Unknown' which generates in HA a string/number mismatch error if no fan is found
+    speed = -1
     # Utilising psutil for fan speed reading on ARM arch
     try:
         if not hasattr(psutil, "sensors_fans"):
-            raise NotImplementedError("Platform not supported for sensors_fans")
+            raise NotImplementedError("Platform does not support sensors_fans")
 
         t = psutil.sensors_fans()
-        # if additional fan names returned by psutil are needed add here (as in get_temp)
+        # if additional fan names returned by psutil are needed, add them here (see get_temp as example)
         for x in ['pwmfan', ]:
             if x in t:
                 speed = t[x][0].current
@@ -149,7 +152,7 @@ def get_fan_speed():
     except (Exception, NotImplementedError) as e:
         print('Could not establish fan speed reading: ' + str(e))
         raise
-    return round(speed, 0) if speed != 'Unknown' else speed
+    return round(speed, 0)
 
 
 # display power method depending on system distro
